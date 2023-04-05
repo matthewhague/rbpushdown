@@ -1,11 +1,11 @@
 #include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/home/phoenix/object/new.hpp>
-#include <boost/spirit/home/phoenix/object/construct.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_object.hpp>
-#include <boost/spirit/include/phoenix_stl.hpp>
-#include <boost/spirit/home/phoenix/bind/bind_member_function.hpp>
+#include <boost/phoenix/object/new.hpp>
+#include <boost/phoenix/object/construct.hpp>
+#include <boost/phoenix/core.hpp>
+#include <boost/phoenix/operator.hpp>
+#include <boost/phoenix/object.hpp>
+#include <boost/phoenix/stl.hpp>
+#include <boost/phoenix/bind/bind_member_function.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/spirit/include/support_multi_pass.hpp>
 
@@ -29,7 +29,7 @@ namespace spirit = boost::spirit;
 
 
 template <typename Iterator>
-struct problem_parser 
+struct problem_parser
   : qi::grammar<Iterator, Problem(), ascii::space_type>
 {
     problem_parser()
@@ -46,14 +46,14 @@ struct problem_parser
         using namespace qi::labels;
 
         problem = (lit("pds") >> '{'
-                  >> *(id_p >> id_p >> 
-                       lit("--") >> id_p >> lit("-->") >> 
-                       id_p >> id_list >> rule_guard >> 
+                  >> *(id_p >> id_p >>
+                       lit("--") >> id_p >> lit("-->") >>
+                       id_p >> id_list >> rule_guard >>
                        rule_incs >> rule_decs >> ';')
-                         [bind(&Problem::add_pds_rule, 
-                               _val, 
+                         [bind(&Problem::add_pds_rule,
+                               _val,
                                construct<rule_const_ptr>(new_<Rule>(_1,_2,_3,_4,_5,_6,_7,_8)))]
-                  >> '}') 
+                  >> '}')
                   >> lit("inits") >> '{'
                   >> id_p [bind(&Problem::set_init_control, _val, _1)]
                   >> id_p [bind(&Problem::set_init_char, _val, _1)]
@@ -65,7 +65,7 @@ struct problem_parser
                   >> int_ [bind(&Problem::set_reversals, _val, _1)]
                   >> '}'
                   >> lit("constraint") >> '{'
-                  >> p_fmla [bind(&Problem::set_constraint, _val, _1)] 
+                  >> p_fmla [bind(&Problem::set_constraint, _val, _1)]
                   >> '}';
 
         id_list = *id_p;
@@ -112,10 +112,10 @@ struct problem_parser
 
         p_val = p_sum_list [_val = construct<pres_val_ptr>(new_<EPPlus>(_1))];
         p_sum_list = *(p_operand >> '+') >> p_operand;
-        p_operand = int_ [_val = construct<pres_val_ptr>(new_<EPInteger>(_1))]   
-                    | (int_ >> '*' >> id_p) 
-                         [_val = construct<pres_val_ptr>(new_<EPConstMult>(_1, construct<pres_val_ptr>(new_<EPVar>(_2))))] 
-                    | (int_ >> '*' >> '(' >> p_val >> ')') 
+        p_operand = int_ [_val = construct<pres_val_ptr>(new_<EPInteger>(_1))]
+                    | (int_ >> '*' >> id_p)
+                         [_val = construct<pres_val_ptr>(new_<EPConstMult>(_1, construct<pres_val_ptr>(new_<EPVar>(_2))))]
+                    | (int_ >> '*' >> '(' >> p_val >> ')')
                          [construct<pres_val_ptr>(new_<EPConstMult>(_1, _2))]
                     | id_p [_val = construct<pres_val_ptr>(new_<EPVar>(_1))];
 
@@ -136,7 +136,7 @@ struct problem_parser
         p_exists = (lit("(E)") >> '(' >> p_var_list >> ')' >> '(' >> p_fmla >> ')')
                           [_val = construct<pres_ptr>(new_<EPExists>(_1, _2))];
 
-        p_var_list = *((id_p >> ',')[insert(_val, _1)]) 
+        p_var_list = *((id_p >> ',')[insert(_val, _1)])
                      >> id_p [insert(_val, _1)];
 
         p_true = lit("true")
@@ -145,7 +145,7 @@ struct problem_parser
                      [_val = construct<pres_ptr>(new_<EPBool>(0))];
 
     }
- 
+
     qi::rule<Iterator, Problem(), ascii::space_type> problem;
     qi::rule<Iterator, Problem(), ascii::space_type> pds;
     qi::rule<Iterator, vector<string>(), ascii::space_type> id_list;
@@ -194,7 +194,7 @@ bool Problem::parse_problem(string const& description)
     std::string::const_iterator end = description.end();
 
     problem_parser<std::string::const_iterator> p;
-    
+
     bool r = qi::phrase_parse(begin, end, p, ascii::space, *this);
 
     return !(!r || begin != end);
@@ -212,16 +212,16 @@ bool Problem::parse_problem_file(string const& file_name)
     file.unsetf(ios_base::skipws);
 
     typedef std::istream_iterator<char> base_iterator_type;
-    spirit::multi_pass<base_iterator_type> first = 
+    spirit::multi_pass<base_iterator_type> first =
         spirit::make_default_multi_pass(base_iterator_type(file));
 
 
     problem_parser<spirit::multi_pass<base_iterator_type>> p;
-    
-    bool r = qi::phrase_parse(first, 
-                              spirit::make_default_multi_pass(base_iterator_type()), 
-                              p, 
-                              ascii::space, 
+
+    bool r = qi::phrase_parse(first,
+                              spirit::make_default_multi_pass(base_iterator_type()),
+                              p,
+                              ascii::space,
                               *this);
 
     return !(!r || first != spirit::make_default_multi_pass(base_iterator_type()));
@@ -237,5 +237,6 @@ ostream& operator<<(ostream& output, Problem const& prob) {
     output << "Inits: " << prob.init_control << " " << prob.init_char << "\n";
     output << "Final: " << prob.final_control << "\n";
     output << "Reversals: " << prob.nreversals << "\n";
+    return output;
 }
 
