@@ -1,0 +1,22 @@
+
+start test
+start test
+
+counter c reversals 1
+
+shared bool l
+
+switches 2
+
+procedure test()
+begin
+    while ?? do
+        c++;
+    lock l;
+    if [c > 0] then
+    begin
+        assert [c > 0];
+        c--;
+    end;
+    unlock l;
+end;

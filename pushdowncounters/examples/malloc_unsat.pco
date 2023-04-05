@@ -1,0 +1,27 @@
+pds {
+    p init -- z --> p make_list a1;
+    p a1 -- z --> p split_list a2;
+    p a2 -- z --> p free_list1 a3;
+    p a3 -- z --> p free_list2 a4;
+    p a4 -- z --> p;
+
+
+    p make_list -- alloc --> p make_list +(list);
+    p make_list -- z --> p;
+
+    p split_list -- z --> p split_list [(list > 0)] +(list1) -(list);
+    p split_list -- z --> p split_list [(list > 0)] +(list2) -(list);
+    p split_list -- z --> p [(list == 0)];
+
+    p free_list1 -- delete --> p free_list1 [(list1 > 0)] -(list1);
+    p free_list1 -- z --> p [(list1 == 0)];
+
+    p free_list2 -- delete --> p free_list2 [(list2 > 0)] -(list2);
+    p free_list2 -- z --> p [(list2 == 0)];
+}
+inits { p init }
+final { p }
+reversals { 1 }
+constraint {
+    !(delete == alloc)
+}

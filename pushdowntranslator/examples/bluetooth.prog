@@ -1,0 +1,89 @@
+
+shared bool stopped
+shared bool driverStoppingFlag
+shared bool stoppingEvent
+
+shared bool p0
+shared bool p1
+shared bool p2
+shared bool p3
+shared bool p4
+
+bool ret
+
+start thread0
+start thread1
+
+procedure IoDec()
+    bool q0
+    bool q1
+    bool q2
+    bool q3
+    bool q4
+begin
+    p0 = !p0 && (p1 || p2 || p3 || p4), 
+    p1 = (p1&&p0)||(!p1 && !p0 && (p2 || p3 || p4)), 
+    p2 = ((p0||p1)&&p2)||(!p2 && !p1 && !p0 && (p3 || p4)), 
+    p3 = (!p0&&!p1 &&!p2 &&!p3 && p4)||((p0||p1||p2)&&p3), 
+    p4 = ((p0||p1||p2||p3)&&p4), 
+    q0 = !p0 && ( p1 || p2 || p3 || p4), 
+    q1 = (p1&&p0)||(!p1 && !p0 && (p2 || p3 || p4)), 
+    q2 = ((p0||p1)&&p2)||(!p2 && !p1 && !p0 && (p3 || p4)), 
+    q3 = (!p0&&!p1 &&!p2 &&!p3 && p4)||((p0||p1||p2)&&p3), 
+    q4 = ((p0||p1||p2||p3)&&p4);
+
+    if {!q4 && !q3 && !q2 && !q1 && !q0} then 
+           stoppingEvent = 1;
+    
+    return;
+end;
+ 
+procedure IoInc()
+    bool status
+begin
+    p0 = !p0 || ( p0 && p1 && p2 && p3 && p4), 
+    p1 = (p1&&!p0)||(!p1&&p0)||( p0 && p1 && p2 && p3 && p4), 
+    p2 = (p2&&(!p0||!p1))||(!p2&&p1&&p0)||( p0 && p1 && p2 && p3 && p4), 
+    p3 = (p3&&(!p0||!p1||!p2))||(!p3&&p2&&p1&&p0)||( p0 && p1 && p2 && p3 && p4), 
+    p4 = p4 ||(!p4&&p3&&p2&&p1&&p0);
+
+    if {driverStoppingFlag} then
+    begin
+            IoDec();
+            status=0;
+    end;
+    else 
+        status=1;
+    ret = status;
+    return;
+end;
+
+
+procedure thread0()
+    bool status
+begin
+    IoInc();
+    status = ret, ret = 0;
+    if {status} then
+    begin
+        skip;
+        if {stopped} then
+            echo error;
+    end;
+    IoDec();
+end;
+
+
+procedure thread1()
+begin
+        driverStoppingFlag = 1;
+        IoDec();
+        while {!stoppingEvent} do
+                skip;
+        echo ok;
+        stopped = 1;
+end;
+
+
+
+

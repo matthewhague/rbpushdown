@@ -1,0 +1,73 @@
+
+
+counter list reversals 1
+
+bool ret
+
+start tester1
+start tester2
+
+switches 2
+
+constraint (list == 0) && (done != put)
+
+procedure put()
+begin
+    echo put;
+    list++;
+end;
+
+procedure take()
+    bool yes
+begin
+    if [list > 0] then
+    begin
+        assert [list > 0];
+        list--;
+        yes = 1;
+    end;
+    ret = yes;
+end;
+
+
+procedure tester1()
+begin
+    list++;
+    while ?? do
+    begin
+        take();
+        if {ret} then
+        begin
+            ret = 0;
+            echo done;
+            if ?? then
+                put();
+        end;
+    end;
+end;
+
+procedure steal()
+    bool yes
+begin
+    if [list > 0] then
+    begin
+        list--;
+        yes = 1;
+    end;
+    ret = yes;
+end;
+
+procedure tester()
+begin
+    while ?? do
+    begin
+        steal();
+        if {ret} then
+        begin
+            ret = 0;
+            echo done;
+        end;
+    end;
+end;
+
+

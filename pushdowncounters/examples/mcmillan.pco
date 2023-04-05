@@ -1,0 +1,23 @@
+pds {
+    p main -- z --> p main1;
+    p main1 -- z --> p main4;
+    p main1 -- z --> p main2;
+    p main2 -- z --> p main3;
+    p main3 -- z --> p main1 +(i);
+
+    p main4 -- z --> p main4b [(i < 100)];
+
+    p main4b -- z --> p main8;
+    p main4 -- z --> p main5;
+    p main5 -- z --> p main6;
+    p main6 -- z --> p main7 +(i);
+    p main7 -- z --> p main4 +(j);
+
+    p main8 -- z --> p [((j < 100) && (i > 200))];
+}
+inits { p main }
+final { p }
+reversals { 0 }
+constraint { 
+    true
+}

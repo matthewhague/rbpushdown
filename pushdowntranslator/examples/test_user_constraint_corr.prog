@@ -1,0 +1,22 @@
+
+counter c reversals 0
+
+start main1
+start main2
+
+constraint (wait == 1) && (what == 0)
+
+switches 1
+
+
+procedure main1()
+begin
+    c++;
+    echo wait;
+end;
+
+procedure main2()
+begin
+    echo what;
+    echo what;
+end;

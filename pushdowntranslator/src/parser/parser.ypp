@@ -1,0 +1,627 @@
+%{
+    #include <iostream>
+
+    #include "boost/shared_ptr.hpp"
+    #include "boost/make_shared.hpp"
+
+    #include "../structures/program.h"
+    #include "../structures/variableexpression.h"
+    #include "../structures/epresburger.h"
+    #include "../structures/pds.h"
+
+    
+	extern int yylex();
+    extern int yylineno;
+	void yyerror(const char *s) { 
+        std::cerr << "ERROR: " << s 
+                  << " at line " << yylineno << "."     
+                  << std::endl; 
+        exit(-1);
+    }
+
+    prog::program_ptr program = boost::make_shared<prog::Program>();
+    std::vector<std::string> init_procedure_names;
+
+    void check_consistency() {
+        std::vector<std::string> errors = program->check_consistency();
+        if (errors.size() > 0) {
+            for (std::string const& error : errors) {
+                std::cerr << "ERROR: " << error << std::endl; 
+            }
+            exit(-1);
+        }
+    }
+%}
+
+%union {
+	int                      token;
+    std::string*             string;
+    int                      integer;
+    prog::Program*           program;
+    prog::Procedure*         procedure;
+    prog::Statement*         stmt;
+    prog::StatementBlock*    stmt_block;
+    prog::StatementIf*       stmt_if;
+    prog::StatementSwitch*   stmt_switch;
+    prog::StatementCall*     stmt_call;
+    prog::StatementAssign*   stmt_assign;
+    vexp::VarExpression*     var_exp;
+    cexp::CounterExpression* count_exp;
+    pres::EPresburger*       epres_exp;
+    pres::EPresVal*          epres_val;
+}
+
+%token <token>   PDSPROCEDURE LPAREN RPAREN BOOL COMMA RETURN 
+%token <token>   BLK_BEGIN BLK_END ASSIGN ADD SUBTRACT
+%token <token>   SEMI_COLON NOT AND OR IF THEN ELSE IF_END
+%token <token>   WHILE DO COLON START COUNTER FREEVARIABLE IMPLIES
+%token <token>   LSQUARE RSQUARE LBRACE RBRACE INCR DECR
+%token <token>   EECHO NONDET SWITCH CASE CEQ CNEQ CGT CLT
+%token <token>   CLTE CGTE ASSERT SHAREDBOOL LOCK UNLOCK
+%token <token>   EPLUS EMINUS EMULT CONSTRAINT REVERSALS
+%token <token>   CONTEXTSWITCHES BTRUE BFALSE SKIPCMD GOTO
+%token <string>  IDENTIFIER 
+%token <integer> INTEGER
+
+%type <program>     program program_start
+%type <procedure>   procedure procedure_header procedure_name procedure_name_arg
+%type <procedure>   procedure_name_args procedure_decl procedure_header_locals
+%type <string>      bool_var shared_bool
+%type <stmt>        stmt stmt_body stmt_return stmt_while
+%type <stmt>        stmt_counter_adj stmt_echo stmt_assert stmt_lock
+%type <stmt>        stmt_skip stmt_goto
+%type <stmt_assign> stmt_assign stmt_assign_start
+%type <stmt_block>  stmt_block stmt_block_start
+%type <stmt_if>     stmt_if stmt_if_then_start
+%type <stmt_switch> stmt_switch stmt_switch_start
+%type <stmt_call>   stmt_call stmt_call_start
+%type <var_exp>     var_exp var_exp_const var_exp_var var_exp_not
+%type <var_exp>     var_exp_and var_exp_or var_exp_brac 
+%type <var_exp>     var_exp_implies var_exp_poss
+%type <count_exp>   count_exp count_exp_const count_exp_comp count_exp_not
+%type <count_exp>   count_exp_and count_exp_or count_exp_brac 
+%type <count_exp>   count_exp_implies count_exp_poss count_exp_fv_comp
+%type <epres_exp>   epres_exp epres_exp_comp epres_exp_and epres_exp_or
+%type <epres_exp>   epres_exp_not epres_exp_implies epres_exp_brac
+%type <epres_exp>   epres_exp_const 
+%type <epres_val>   epres_val epres_val_plus epres_val_minus
+%type <epres_val>   epres_val_constmult epres_val_brac epres_val_integer
+%type <epres_val>   epres_val_var 
+
+%left AND 
+%left OR 
+%left IMPLIES
+%left NOT
+%left EPLUS
+%left EMINUS
+%left EMULT
+
+/* We expect a shift/reduce on if/then/else thing */
+%expect 1
+
+%start program
+
+%%
+
+program : program_start procedures { check_consistency(); };
+
+program_start : /* empty */ { }
+              | shared_bool program_start {
+                    program->add_shared_var(*$1);
+                    delete $1;
+              }
+              | bool_var program_start {
+                    program->add_global_var(*$1);
+                    delete $1;
+              }
+              | COUNTER IDENTIFIER REVERSALS INTEGER program_start {
+                    program->add_counter(*$2, $4);
+                    delete $2;
+              }
+              | FREEVARIABLE IDENTIFIER program_start {
+                    program->add_freevariable(*$2);
+                    delete $2;
+              }
+              | START IDENTIFIER program_start {
+                    init_procedure_names.push_back(*$2);
+                    delete $2;
+              }
+              | CONTEXTSWITCHES INTEGER program_start {
+                    program->set_context_switches($2);
+              }
+              | CONSTRAINT epres_exp program_start {
+                    pres::epresburger_ptr p = $2->make_shared_ptr();
+                    program->set_constraint(p);
+              };
+
+
+shared_bool : SHAREDBOOL IDENTIFIER { $$ = $2; };
+
+procedures : procedure {  
+                  prog::procedure_ptr m = $1->make_shared_ptr(); 
+                  program->add_procedure(m); 
+                  for (std::string inits : init_procedure_names) {
+                      if (inits == m->get_name())
+                          program->add_thread(m);
+                  }
+            } 
+            | procedures procedure { 
+                  prog::procedure_ptr m = $2->make_shared_ptr(); 
+                  program->add_procedure(m); 
+                  for (std::string inits : init_procedure_names) {
+                      if (inits == m->get_name())
+                          program->add_thread(m);
+                  }
+            };
+   
+
+procedure : procedure_decl stmt { 
+                $$ = $1; 
+                prog::statement_ptr s = $2->make_shared_ptr();
+                $$->set_statement(s);
+            };
+
+procedure_decl : procedure_header_locals { $$ = $1; };
+  
+procedure_header_locals : procedure_header { $$ = $1; }
+                        | procedure_header_locals bool_var {
+                              $$ = $1;
+                              $$->add_local_var(*$2);
+                              delete $2;
+                        };
+
+procedure_header : procedure_name_args RPAREN {
+                       $$ = $1;
+                 };
+    
+procedure_name_args : procedure_name { $$ = $1; }
+                    | procedure_name_arg { $$ = $1; }
+                    | procedure_name_args COMMA bool_var {
+                          $$ = $1;
+                          $$->append_argument(*$3);
+                          delete $3;
+                    };
+   
+procedure_name_arg : procedure_name bool_var {
+                         $$ = $1;
+                         $$->append_argument(*$2);
+                         delete $2;
+                   };
+
+procedure_name : PDSPROCEDURE IDENTIFIER LPAREN {
+                     $$ = new prog::Procedure();
+                     $$->set_name(*$2);
+                     delete $2;
+               };
+   
+bool_var : BOOL IDENTIFIER { $$ = $2; };
+
+stmt : stmt_body { $$ = $1; }
+     | IDENTIFIER COLON stmt { 
+           $$ = $3;
+           $$->add_label(*$1);
+           delete $1;
+     };
+
+stmt_body : stmt_return      { $$ = $1; }
+          | stmt_block       { $$ = $1; }
+          | stmt_assign      { $$ = $1; }
+          | stmt_if          { $$ = $1; }
+          | stmt_while       { $$ = $1; }
+          | stmt_call        { $$ = $1; }
+          | stmt_counter_adj { $$ = $1; }
+          | stmt_echo        { $$ = $1; }
+          | stmt_switch      { $$ = $1; }
+          | stmt_assert      { $$ = $1; }
+          | stmt_lock        { $$ = $1; }
+          | stmt_skip        { $$ = $1; }
+          | stmt_goto        { $$ = $1; }
+
+stmt_block : stmt_block_start BLK_END SEMI_COLON { $$ = $1; };
+
+stmt_block_start : BLK_BEGIN stmt {  
+                       $$ = new prog::StatementBlock();
+                       prog::statement_ptr s = $2->make_shared_ptr();
+                       $$->append_statement(s);
+                  }
+                  | stmt_block_start stmt {
+                        $$ = $1;
+                        prog::statement_ptr s = $2->make_shared_ptr();
+                        $$->append_statement(s);
+                  };
+  
+
+stmt_return : RETURN SEMI_COLON { $$ = new prog::StatementReturn(); };
+
+stmt_assign : stmt_assign_start SEMI_COLON { $$ = $1; };
+
+stmt_assign_start : IDENTIFIER ASSIGN var_exp {
+                        vexp::varexpression_ptr b = $3->make_shared_ptr();
+                        $$ = new prog::StatementAssign(*$1, b);
+                        delete $1;
+                  }
+                  | stmt_assign_start COMMA IDENTIFIER ASSIGN var_exp {
+                        vexp::varexpression_ptr b = $5->make_shared_ptr();
+                        $$->add_assign(*$3, b);
+                        delete $3;
+                  };
+
+stmt_if : stmt_if_then_start { $$ = $1; }
+        | stmt_if_then_start ELSE stmt {
+              $$ = $1;
+              prog::statement_ptr p = $3->make_shared_ptr();
+              $$->set_else_stmt(p);
+        };
+
+stmt_if_then_start : IF var_exp_poss count_exp_poss THEN stmt {
+                         vexp::varexpression_ptr cv;
+                         if $2
+                            cv = $2->make_shared_ptr();
+                         cexp::counterexp_ptr cc;
+                         if $3
+                            cc = $3->make_shared_ptr();
+                         prog::statement_ptr p = $5->make_shared_ptr();
+                         $$ = new prog::StatementIf(cv, cc, p);
+                   }
+                   | IF NONDET THEN stmt {
+                         vexp::varexpression_ptr cv;
+                         cexp::counterexp_ptr cc;
+                         prog::statement_ptr p = $4->make_shared_ptr();
+                         $$ = new prog::StatementIf(cv, cc, p);
+                   };
+
+
+stmt_while : WHILE var_exp_poss count_exp_poss DO stmt {
+                 vexp::varexpression_ptr cv;
+                 if $2 
+                    cv = $2->make_shared_ptr();
+                 cexp::counterexp_ptr cc;
+                 if $3
+                    cc = $3->make_shared_ptr();
+                 prog::statement_ptr p = $5->make_shared_ptr();
+                 $$ = new prog::StatementWhile(cv, cc, p);
+             }
+             | WHILE NONDET DO stmt {
+                 vexp::varexpression_ptr cv;
+                 cexp::counterexp_ptr cc;
+                 prog::statement_ptr p = $4->make_shared_ptr();
+                 $$ = new prog::StatementWhile(cv, cc, p);
+             };
+
+stmt_call : stmt_call_start RPAREN SEMI_COLON { $$ = $1; };
+
+stmt_call_start : IDENTIFIER LPAREN {
+                      $$ = new prog::StatementCall();
+                      $$->set_procedure_name(*$1);
+                      delete $1;
+                }
+                | stmt_call_start var_exp {
+                      $$ = $1;
+                      vexp::varexpression_ptr c = $2->make_shared_ptr();
+                      $1->append_argument(c);
+                }
+                | stmt_call_start COMMA var_exp {
+                      $$ = $1;
+                      vexp::varexpression_ptr c = $3->make_shared_ptr();
+                      $1->append_argument(c);
+                };
+
+
+stmt_counter_adj : IDENTIFIER INCR SEMI_COLON { 
+                       $$ = new prog::StatementCounterAdj(*$1, 1);
+                       delete $1;
+                 }
+                 | IDENTIFIER DECR SEMI_COLON {
+                       $$ = new prog::StatementCounterAdj(*$1, -1);
+                       delete $1;
+                 }
+                 | IDENTIFIER ADD INTEGER SEMI_COLON {
+                       $$ = new prog::StatementCounterAdj(*$1, $3);
+                       delete $1;
+                 }
+                 | IDENTIFIER SUBTRACT INTEGER SEMI_COLON {
+                       $$ = new prog::StatementCounterAdj(*$1, -$3);
+                       delete $1;
+                 };
+
+stmt_echo : EECHO IDENTIFIER SEMI_COLON {
+                $$ = new prog::StatementEcho(*$2);
+                delete $2;
+          };
+
+
+stmt_switch : stmt_switch_start BLK_END SEMI_COLON { $$ = $1; };
+
+stmt_switch_start : SWITCH CASE stmt {  
+                       $$ = new prog::StatementSwitch();
+                       prog::statement_ptr s = $3->make_shared_ptr();
+                       $$->add_branch(s);
+                  }
+                  | stmt_switch_start CASE stmt {
+                        $$ = $1;
+                        prog::statement_ptr s = $3->make_shared_ptr();
+                        $$->add_branch(s);
+                  };
+
+
+stmt_assert : ASSERT var_exp_poss count_exp_poss SEMI_COLON {
+                 vexp::varexpression_ptr cv;
+                 if $2 
+                    cv = $2->make_shared_ptr();
+                 cexp::counterexp_ptr cc;
+                 if $3
+                    cc = $3->make_shared_ptr();
+                 $$ = new prog::StatementAssert(cv, cc);
+             };
+
+stmt_lock : LOCK IDENTIFIER SEMI_COLON {
+                $$ = new prog::StatementLock(*$2, true);
+                delete $2;
+          }
+          | UNLOCK IDENTIFIER SEMI_COLON {
+                $$ = new prog::StatementLock(*$2, false);
+                delete $2;
+          };
+
+stmt_skip : SKIPCMD SEMI_COLON {
+                $$ = new prog::StatementEcho(E_ACT);
+          };
+
+stmt_goto : GOTO IDENTIFIER SEMI_COLON {
+                $$ = new prog::StatementGoto(*$2);
+                delete $2;
+          };
+
+
+var_exp_poss : /* empty */ { $$ = 0; }
+             | LBRACE var_exp RBRACE {
+                   $$ = $2;
+             };
+
+var_exp : var_exp_const   { $$ = $1; }
+        | var_exp_var     { $$ = $1; }
+        | var_exp_not     { $$ = $1; }
+        | var_exp_and     { $$ = $1; }
+        | var_exp_or      { $$ = $1; }
+        | var_exp_brac    { $$ = $1; }
+        | var_exp_implies { $$ = $1; };
+
+var_exp_const : INTEGER { $$ = new vexp::VExpConst($1 != 0); }
+              | BTRUE   { $$ = new vexp::VExpConst(1); }
+              | BFALSE  { $$ = new vexp::VExpConst(0); };
+
+var_exp_var : IDENTIFIER { 
+                  $$ = new vexp::VExpVar(*$1);
+                  delete $1;
+            };
+
+var_exp_not : NOT var_exp {
+                  vexp::varexpression_ptr p = $2->make_shared_ptr();
+                  $$ = new vexp::VExpNot(p);
+            };
+
+var_exp_and : var_exp AND var_exp {
+                  vexp::varexpression_ptr p1 = $1->make_shared_ptr();
+                  vexp::varexpression_ptr p2 = $3->make_shared_ptr();
+                  $$ = new vexp::VExpAnd(p1, p2);
+            };
+
+var_exp_or : var_exp OR var_exp {
+                 vexp::varexpression_ptr p1 = $1->make_shared_ptr();
+                 vexp::varexpression_ptr p2 = $3->make_shared_ptr();
+                 $$ = new vexp::VExpOr(p1, p2);
+           };
+
+var_exp_brac : LPAREN var_exp RPAREN { $$ = $2; };
+
+var_exp_implies : var_exp IMPLIES var_exp {
+                      vexp::varexpression_ptr p1 = $1->make_shared_ptr();
+                      vexp::varexpression_ptr p2 = $3->make_shared_ptr();
+                      $$ = new vexp::VExpImplies(p1, p2);
+                };
+
+count_exp_poss : /* empty */ { $$ = 0; }
+               | LSQUARE count_exp RSQUARE {
+                     $$ = $2;
+               };
+
+count_exp : count_exp_const   { $$ = $1; }
+          | count_exp_comp    { $$ = $1; }
+          | count_exp_fv_comp { $$ = $1; }
+          | count_exp_not     { $$ = $1; }
+          | count_exp_and     { $$ = $1; }
+          | count_exp_or      { $$ = $1; }
+          | count_exp_brac    { $$ = $1; }
+          | count_exp_implies { $$ = $1; };
+  
+
+count_exp_const : INTEGER { $$ = new cexp::CExpConst($1 != 0); }
+                | BTRUE   { $$ = new cexp::CExpConst(1); }
+                | BFALSE  { $$ = new cexp::CExpConst(0); };
+
+
+count_exp_comp : IDENTIFIER CEQ INTEGER { 
+                     $$ = new cexp::CExpConstCompare(*$1, cexp::EQ, $3);
+                     delete $1;
+               }
+               | IDENTIFIER CNEQ INTEGER {
+                     $$ = new cexp::CExpConstCompare(*$1, cexp::NEQ, $3);
+                     delete $1;
+               }
+               | IDENTIFIER CLT INTEGER {
+                     $$ = new cexp::CExpConstCompare(*$1, cexp::LT, $3);
+                     delete $1;
+               }
+               | IDENTIFIER CGT INTEGER {
+                     $$ = new cexp::CExpConstCompare(*$1, cexp::GT, $3);
+                     delete $1;
+               }
+               | IDENTIFIER CLTE INTEGER {
+                     $$ = new cexp::CExpConstCompare(*$1, cexp::LTE, $3);
+                     delete $1;
+               }
+               | IDENTIFIER CGTE INTEGER {
+                     $$ = new cexp::CExpConstCompare(*$1, cexp::GTE, $3);
+                     delete $1;
+               };
+
+count_exp_fv_comp : IDENTIFIER CEQ IDENTIFIER { 
+                        $$ = new cexp::CExpFVCompare(*$1, cexp::EQ, *$3);
+                        delete $1;
+                        delete $3;
+                  }
+                  | IDENTIFIER CNEQ IDENTIFIER {
+                        $$ = new cexp::CExpFVCompare(*$1, cexp::NEQ, *$3);
+                        delete $1;
+                        delete $3;
+                  }
+                  | IDENTIFIER CLT IDENTIFIER {
+                        $$ = new cexp::CExpFVCompare(*$1, cexp::LT, *$3);
+                        delete $1;
+                        delete $3;
+                  }
+                  | IDENTIFIER CGT IDENTIFIER {
+                        $$ = new cexp::CExpFVCompare(*$1, cexp::GT, *$3);
+                        delete $1;
+                        delete $3;
+                  }
+                  | IDENTIFIER CLTE IDENTIFIER {
+                        $$ = new cexp::CExpFVCompare(*$1, cexp::LTE, *$3);
+                        delete $1;
+                        delete $3;
+                  }
+                  | IDENTIFIER CGTE IDENTIFIER {
+                        $$ = new cexp::CExpFVCompare(*$1, cexp::GTE, *$3);
+                        delete $1;
+                        delete $3;
+                  };
+
+
+count_exp_not : NOT count_exp {
+                    cexp::counterexp_ptr p = $2->make_shared_ptr();
+                    $$ = new cexp::CExpNot(p);
+              };
+
+count_exp_and : count_exp AND count_exp {
+                    cexp::counterexp_ptr p1 = $1->make_shared_ptr();
+                    cexp::counterexp_ptr p2 = $3->make_shared_ptr();
+                    $$ = new cexp::CExpAnd(p1, p2);
+              };
+
+count_exp_or : count_exp OR count_exp {
+                   cexp::counterexp_ptr p1 = $1->make_shared_ptr();
+                   cexp::counterexp_ptr p2 = $3->make_shared_ptr();
+                   $$ = new cexp::CExpOr(p1, p2);
+             };
+
+count_exp_brac : LPAREN count_exp RPAREN { $$ = $2; };
+
+count_exp_implies : count_exp IMPLIES count_exp {
+                        cexp::counterexp_ptr p1 = $1->make_shared_ptr();
+                        cexp::counterexp_ptr p2 = $3->make_shared_ptr();
+                        $$ = new cexp::CExpImplies(p1, p2);
+                  };
+
+
+epres_exp : epres_exp_const   { $$ = $1; }
+          | epres_exp_comp    { $$ = $1; }
+          | epres_exp_not     { $$ = $1; }
+          | epres_exp_and     { $$ = $1; }
+          | epres_exp_or      { $$ = $1; }
+          | epres_exp_brac    { $$ = $1; }
+          | epres_exp_implies { $$ = $1; };
+  
+epres_exp_const : BTRUE { $$ = new pres::EPresConst(1); }
+                | BFALSE { $$ = new pres::EPresConst(0); };
+
+epres_exp_comp : epres_val CEQ epres_val {
+                     pres::epres_val_ptr lhs = $1->make_shared_ptr();
+                     pres::epres_val_ptr rhs = $3->make_shared_ptr();
+                     $$ = new pres::EPresCompare(lhs, pres::EQ, rhs);
+               }
+               | epres_val CNEQ epres_val {
+                     pres::epres_val_ptr lhs = $1->make_shared_ptr();
+                     pres::epres_val_ptr rhs = $3->make_shared_ptr();
+                     $$ = new pres::EPresCompare(lhs, pres::NEQ, rhs);
+               }
+               | epres_val CLT epres_val {
+                     pres::epres_val_ptr lhs = $1->make_shared_ptr();
+                     pres::epres_val_ptr rhs = $3->make_shared_ptr();
+                     $$ = new pres::EPresCompare(lhs, pres::LT, rhs);
+               }
+               | epres_val CGT epres_val {
+                     pres::epres_val_ptr lhs = $1->make_shared_ptr();
+                     pres::epres_val_ptr rhs = $3->make_shared_ptr();
+                     $$ = new pres::EPresCompare(lhs, pres::GT, rhs);
+               }
+               | epres_val CLTE epres_val {
+                     pres::epres_val_ptr lhs = $1->make_shared_ptr();
+                     pres::epres_val_ptr rhs = $3->make_shared_ptr();
+                     $$ = new pres::EPresCompare(lhs, pres::LTE, rhs);
+               }
+               | epres_val CGTE epres_val {
+                     pres::epres_val_ptr lhs = $1->make_shared_ptr();
+                     pres::epres_val_ptr rhs = $3->make_shared_ptr();
+                     $$ = new pres::EPresCompare(lhs, pres::GTE, rhs);
+               };
+
+epres_exp_not : NOT epres_exp {
+                    pres::epresburger_ptr p = $2->make_shared_ptr();
+                    $$ = new pres::EPresNot(p);
+              };
+
+epres_exp_and : epres_exp AND epres_exp {
+                    pres::epresburger_ptr p1 = $1->make_shared_ptr();
+                    pres::epresburger_ptr p2 = $3->make_shared_ptr();
+                    $$ = new pres::EPresAnd(p1, p2);
+              };
+
+epres_exp_or : epres_exp OR epres_exp {
+                   pres::epresburger_ptr p1 = $1->make_shared_ptr();
+                   pres::epresburger_ptr p2 = $3->make_shared_ptr();
+                   $$ = new pres::EPresOr(p1, p2);
+             };
+
+epres_exp_brac : LPAREN epres_exp RPAREN { $$ = $2; };
+
+epres_exp_implies : epres_exp IMPLIES epres_exp {
+                        pres::epresburger_ptr p1 = $1->make_shared_ptr();
+                        pres::epresburger_ptr p2 = $3->make_shared_ptr();
+                        $$ = new pres::EPresImplies(p1, p2);
+                  };
+
+epres_val : epres_val_integer   { $$ = $1; }
+          | epres_val_plus      { $$ = $1; }
+          | epres_val_minus     { $$ = $1; }
+          | epres_val_var       { $$ = $1; }
+          | epres_val_constmult { $$ = $1; }
+          | epres_val_brac      { $$ = $1; };
+         
+
+epres_val_integer : INTEGER { $$ = new pres::EPresInteger($1); };
+
+epres_val_plus : epres_val EPLUS epres_val {
+                     pres::epres_val_ptr p1 = $1->make_shared_ptr();
+                     pres::epres_val_ptr p2 = $3->make_shared_ptr();
+                     $$ = new pres::EPresPlus(p1, p2);
+               };
+
+epres_val_minus : epres_val EMINUS epres_val {
+                      pres::epres_val_ptr p1 = $1->make_shared_ptr();
+                      pres::epres_val_ptr p2 = $3->make_shared_ptr();
+                      $$ = new pres::EPresMinus(p1, p2);
+                };
+
+epres_val_var : IDENTIFIER {
+                    $$ = new pres::EPresVar(*$1);
+                    delete $1;
+              };
+
+epres_val_constmult : INTEGER EMULT epres_val {
+                          pres::epres_val_ptr p = $3->make_shared_ptr();
+                          $$ = new pres::EPresConstMult($1, p);
+                    }
+
+epres_val_brac : LPAREN epres_val RPAREN { $$ = $2; };
+
+%%

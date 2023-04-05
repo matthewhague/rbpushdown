@@ -1,0 +1,404 @@
+
+
+
+counter alg_types reversals 1
+
+shared bool alg_types_sem
+
+bool ret
+
+
+start tester
+start tester
+
+switches 2
+
+constraint (register == unregister) && (free != alloc)
+
+
+procedure alg_get_type()
+	bool type
+begin
+    lock alg_types_sem;
+	if [alg_types > 0] then
+        while ?? do
+        begin
+agt_continue: 
+            if ?? then
+			    goto agt_continue;
+
+    		if ?? then
+    			type = 1;
+
+    		goto agt_break;
+	    end;
+
+agt_break:
+	unlock alg_types_sem;
+
+    ret = type;
+	return;
+end;
+
+
+procedure af_alg_register_type()
+	bool good
+    bool node
+begin
+	lock alg_types_sem;
+    if [alg_types > 0] then
+        while ?? do
+		    if ?? then
+			    goto aart_unlock;
+
+    if ?? then 
+    begin
+        node = 1;
+        echo alloc;
+    end;
+	good = 0;
+	if {!node} then
+		goto aart_unlock;
+
+	skip;
+	skip;
+	alg_types++;
+	good = 1;
+
+aart_unlock:
+	unlock alg_types_sem;
+
+    ret = good;
+	return;
+end;
+
+procedure af_alg_unregister_type()
+	bool good
+begin
+    if [alg_types > 0] then
+        while ?? do
+        begin
+aaut_continue:        
+		    if ?? then
+			    goto aaut_continue;
+
+    		assert [alg_types > 0];
+            alg_types--;
+            echo free;
+            good = 1;
+		    goto aaut_break;
+	    end;
+
+aaut_break:
+
+    ret = good;
+	return;
+end;
+
+procedure alg_do_release()
+begin
+	if ?? then
+		return;
+
+	skip;
+	skip;
+end;
+
+procedure af_alg_release()
+begin
+	if ?? then
+		skip;
+	return;
+end;
+
+procedure alg_bind()
+begin
+	if ?? then
+		return;
+
+	if ?? then
+		return;
+
+	skip;
+	skip;
+
+	alg_get_type();
+	if ?? then
+    begin
+		skip;
+		alg_get_type();
+	end;
+
+	if ?? then
+		return;
+
+	skip;
+	if ?? then
+    begin
+		skip;
+		return;
+	end;
+
+	skip;
+
+	skip;
+	skip;
+
+	skip;
+
+	alg_do_release();
+
+	return;
+end;
+
+procedure alg_setkey()
+begin
+	skip;
+	if ?? then
+		return;
+
+	skip;
+	if ?? then
+		goto as_out;
+
+	skip;
+
+as_out:
+	skip;
+
+	return;
+end;
+
+
+procedure alg_setsockopt()
+begin
+	skip;
+	skip;
+
+	if ?? then
+		goto as2_unlock;
+
+	switch 
+	case:
+    begin
+		if ?? then
+			goto as2_unlock;
+		if ?? then
+			goto as2_unlock;
+
+		alg_setkey();
+    end;
+	end;
+
+as2_unlock:
+	skip;
+
+	return;
+end;
+
+procedure af_alg_accept()
+begin
+	skip;
+	skip;
+
+	if ?? then
+		goto aaa_unlock;
+
+	skip;
+	skip;
+	if ?? then
+		goto aaa_unlock;
+
+	skip;
+	skip;
+
+	if ?? then
+    begin
+		skip;
+		goto aaa_unlock;
+	end;
+
+	skip;
+
+	skip;
+	skip;
+	skip;
+
+	skip;
+	skip;
+
+aaa_unlock:
+	skip;
+
+	return;
+end;
+
+
+procedure alg_accept()
+begin
+	af_alg_accept();
+end;
+
+
+procedure alg_sock_destruct()
+begin
+    skip;
+	alg_do_release();
+end;
+
+procedure alg_create()
+begin
+	if ?? then
+		return;
+	if ?? then
+		return;
+
+	skip;
+	if ?? then
+		goto ac_out;
+
+	skip;
+	skip;
+
+	skip;
+	skip;
+
+	return; 
+ac_out:
+	return;
+end;
+
+
+
+procedure af_alg_make_sg()
+begin
+	skip;
+	if ?? then
+		goto aams_out;
+
+	skip;
+	skip;
+	if ?? then
+		skip;
+
+	skip;
+	if ?? then
+		goto aams_out;
+
+	skip;
+	if ?? then
+		goto aams_out;
+
+	skip;
+
+	skip;
+
+	while ?? do
+    begin
+		skip;
+
+		skip;
+
+		skip;
+		skip;
+		skip;
+    end;	
+
+aams_out:
+	return;
+end;
+
+procedure af_alg_free_sg()
+begin
+	while ?? do
+		skip; 
+end;
+
+procedure af_alg_cmsg_send()
+begin
+	while ?? do
+    begin
+aacs_continue:
+		if ?? then
+			return;
+		if ?? then
+			goto aacs_continue;
+
+		switch 
+		case:
+        begin
+			if ?? then
+				return;
+			skip;
+			if ?? then
+                return;
+        end;
+
+		case:
+        begin
+			if ?? then
+				return;
+			skip;
+        end;
+
+		case:
+			return;
+		end;
+	end;
+
+aacs_break:
+	return;
+end;
+
+procedure af_alg_wait_for_completion()
+begin
+	switch
+	case:
+    begin
+		skip;
+		skip;
+		skip;
+    end;
+	end;
+
+	return;
+end;
+
+procedure af_alg_complete()
+begin
+	skip;
+end;
+
+procedure tester()
+begin
+    while ?? do
+    begin
+        switch
+            case: 
+            begin
+                af_alg_register_type();
+                if {ret} then
+                begin
+                    ret = 0;
+                    echo register;
+                end;
+            end;
+            case: 
+            begin
+                af_alg_unregister_type();
+                if {ret} then
+                begin
+                    ret = 0;
+                    echo unregister;
+                end;
+            end;
+            case: af_alg_release();
+            case: af_alg_accept();
+            case: af_alg_make_sg();
+            case: af_alg_cmsg_send();
+            case: af_alg_wait_for_completion();
+            case: af_alg_complete();
+        end;
+    end;
+end;
+        

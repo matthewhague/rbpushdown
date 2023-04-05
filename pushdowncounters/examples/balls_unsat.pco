@@ -1,0 +1,32 @@
+
+pds{
+    fill bot -- z --> fill black bot;
+    fill bot -- z --> fill bot_fill_white;
+    fill black -- z --> fill black black;
+    fill black -- z --> fill black_fill_white;
+    fill black_fill_white -- z --> fill black_fill_white1 +(white);
+    fill black_fill_white1 -- z --> fill black_fill_white +(white);
+    fill black_fill_white -- z --> play black;
+    fill bot_fill_white -- z --> fill bot_fill_white1 +(white);
+    fill bot_fill_white1 -- z --> fill bot_fill_white +(white);
+    fill bot_fill_white -- z --> play bot;
+
+
+    play black -- z --> play black_both_white -(white);
+    play black_both_white -- z --> play black black -(white);
+    play bot -- z --> play bot_both_white -(white);
+    play bot_both_white -- z --> play black bot -(white);
+
+    play black -- z --> play [(white > 0)];
+
+    play black -- z --> both_black;
+    both_black black -- z --> play black;
+
+
+    play bot -- z --> play win_check -(white);
+    play win_check -- z --> win [(white == 0)];
+}
+inits { fill bot }
+final { win }
+reversals { 1 }
+constraint { true }

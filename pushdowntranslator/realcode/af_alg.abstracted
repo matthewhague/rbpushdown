@@ -1,0 +1,368 @@
+
+
+list alg_types;
+lock alg_types_sem;
+
+procedure alg_get_type()
+{
+	bool type = 0;
+
+    lock alg_types_sem;
+	for_each (alg_types) {
+		if ??
+			continue;
+
+		if ??
+			type = 1
+		break;
+	}
+	unlock alg_types_sem;
+
+	return type;
+}
+
+procedure af_alg_register_type()
+{
+	bool good = 0;
+
+	lock alg_types_sem;
+	for_each (alg_types) {
+		if ??
+			goto unlock;
+	}
+
+	node = kmalloc(sizeof(*node), GFP_KERNEL);
+	good = 0;
+	if (!node)
+		goto unlock;
+
+	skip;
+	skip;
+	alg_types++;
+	good = 1;
+
+unlock:
+	unlock alg_types_sem;
+
+	return err;
+}
+
+procedure af_alg_unregister_type()
+{
+	int good = 0;
+
+	lock alg_types_sem;
+	for_each (alg_types) {
+		if ??
+			continue;
+
+		list_del alg_types;
+		free;
+		good = 1;
+		break;
+	}
+	unlock alg_types_sem;
+
+	return err;
+}
+
+procedure alg_do_release()
+{
+	if ??
+		return;
+
+	skip;
+	skip;
+}
+
+procedure af_alg_release()
+{
+	if ??
+		skip;
+	return;
+}
+
+procedure alg_bind()
+{
+	if ??
+		return;
+
+	if ??
+		return;
+
+	skip;
+	skip;
+
+	alg_get_type()
+	if ?? {
+		skip;
+		alg_get_type();
+	}
+
+	if (!type)
+		return;
+
+	skip;
+	if ?? {
+		skip;
+		return;
+	}
+
+	skip;
+
+	skip;
+	skip;
+
+	skip;
+
+	alg_do_release();
+
+	return;
+}
+
+procedure alg_setkey()
+{
+	skip;
+	if ??
+		return;
+
+	skip;
+	if ??
+		goto out;
+
+	skip;
+
+out:
+	skip;
+
+	return;
+}
+
+
+procedure alg_setsockopt()
+{
+	skip;
+	skip;
+
+	if ??
+		goto unlock;
+
+	switch {
+	case: 
+		if ??
+			goto unlock;
+		if ??
+			goto unlock;
+
+		alg_setkey();
+	}
+
+unlock:
+	skip;
+
+	return;
+}
+
+procedure af_alg_accept()
+{
+	skip;
+	skip;
+
+	if ??
+		goto unlock;
+
+	skip;
+	good = 0;
+	if ??
+		goto unlock;
+
+	skip;
+	skip;
+
+	if (!good) {
+		skip;
+		goto unlock;
+	}
+
+	skip;
+
+	skip;
+	skip;
+	skip;
+
+	skip;
+	skip;
+
+unlock:
+	skip;
+
+	return good;
+}
+
+
+procedure alg_accept()
+{
+	af_alg_accept()
+}
+
+
+procedure alg_sock_destruct()
+{
+    skip;
+	alg_do_release();
+}
+
+procedure alg_create()
+{
+	if ??
+		return;
+	if ??
+		return;
+
+	skip;
+	if ??
+		goto out;
+
+	skip;
+	skip;
+
+	skip;
+	skip;
+
+	return; 
+out:
+	return;
+}
+
+
+
+procedure af_alg_make_sg()
+{
+	skip;
+	if ??
+		goto out;
+
+	skip;
+	skip;
+	if ??
+		skip;
+
+	skip;
+	if ??
+		goto out;
+
+	skip;
+	if ??
+		goto out;
+
+	skip;
+
+	skip;
+
+	while ??
+		skip;
+
+		skip;
+
+		skip;
+		skip;
+		skip;
+	}
+
+out:
+	return;
+}
+
+procedure af_alg_free_sg()
+{
+	while ??
+		skip
+}
+
+procedure af_alg_cmsg_send()
+{
+	while ?? {
+		if ??
+			return;
+		if ??
+			continue;
+
+		switch {
+		case:
+			if ??
+				return;
+			skip;
+			if ??
+                return;
+			break;
+
+		case:
+			if ??
+				return;
+			skip;
+			break;
+
+		default:
+			return;
+		}
+	}
+
+	return;
+}
+
+procedure af_alg_wait_for_completion()
+{
+	switch ?? {
+	case:
+		skip;
+		skip;
+		skip;
+		break;
+	};
+
+	return;
+}
+
+procedure af_alg_complete()
+{
+	skip;
+}
+
+static int __init af_alg_init(void)
+{
+	bool good = proto_register();
+
+	if (!good)
+		goto out;
+
+	good = ??
+	if (!good)
+		goto out_unregister_proto;
+
+out:
+	return good;
+
+out_unregister_proto:
+	proto_unregister();
+	goto out;
+}
+
+procedure af_alg_exit()
+{
+	skip;
+	proto_unregister();
+}
+
+
+EXPORT_SYMBOL_GPL(af_alg_register_type);
+EXPORT_SYMBOL_GPL(af_alg_unregister_type);
+EXPORT_SYMBOL_GPL(af_alg_release);
+EXPORT_SYMBOL_GPL(af_alg_accept);
+EXPORT_SYMBOL_GPL(af_alg_make_sg);
+EXPORT_SYMBOL_GPL(af_alg_cmsg_send);
+EXPORT_SYMBOL_GPL(af_alg_wait_for_completion);
+EXPORT_SYMBOL_GPL(af_alg_complete);
+
+module_init(af_alg_init);
+module_exit(af_alg_exit);
+

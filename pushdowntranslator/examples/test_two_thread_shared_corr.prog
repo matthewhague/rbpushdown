@@ -1,0 +1,19 @@
+
+shared bool x
+
+counter c reversals 0
+
+start main1
+start main2
+
+switches 3
+
+procedure main1()
+begin
+    c++;
+    x = 0;
+end;
+
+procedure main2()
+    if {!x} then
+        assert {!x};    

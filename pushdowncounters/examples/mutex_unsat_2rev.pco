@@ -1,0 +1,18 @@
+pds {
+    p start -- z --> p start +(a1);
+    p start -- z --> p unlocked;
+
+    p unlocked -- z --> p unlocked +(a2) -(a1);
+    p locked -- z --> p locked;
+
+    p unlocked -- z --> p locked +(a3) -(a2);
+
+    p locked -- z --> p unlocked +(a1) -(a3);
+
+    p locked -- z --> p err -(a3);
+    p err -- z--> error -(a3);
+}
+inits { p start }
+final { error }
+reversals { 2 }
+constraint { true }

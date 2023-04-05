@@ -1,0 +1,20 @@
+
+shared bool x
+
+counter c reversals 1
+
+start hello
+start hi
+
+switches 1
+
+constraint tt
+
+procedure hello()
+begin
+    c++;
+end;
+
+
+procedure hi()
+    unlock x;

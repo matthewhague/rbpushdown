@@ -1,0 +1,41 @@
+pds {
+    p init -- z --> p init +(jobs jobs2);
+    p init -- z --> p loop +(worklist worklist2);
+    p loop -- z --> p done [(worklist == 0)];
+    p loop -- z --> p do_job [(worklist > 0)];
+    p do_job -- z --> p process_fun done_job;
+    p done_job -- z --> p loop;
+    p done_job -- z --> p loop2;
+    p done -- z --> p [(jobs == 0)];
+
+    p process_fun -- z --> p no_extra;
+    p process_fun -- z --> p some_extra;
+    p no_extra -- z --> p -(worklist worklist2);
+    p some_extra -- z --> p some_extra1 -(jobs jobs2);
+    p some_extra1 -- z --> p some_extra1 +(worklist worklist2) -(jobs jobs2);
+    p some_extra1 -- z --> p;
+
+    p loop2 -- z --> p done2 [(worklist == 0)];
+    p loop2 -- z --> p do_job2 [(worklist > 0)];
+    p do_job2 -- z --> p process_fun2 done_job2;
+    p done_job2 -- z --> p loop2;
+    p done_job2 -- z --> p loop2;
+    p done_job2 -- z --> p diverging;
+    p done2 -- z --> p [(jobs2 == 0)];
+
+    p process_fun2 -- z --> p no_extra2;
+    p process_fun2 -- z --> p some_extra2;
+    p no_extra2 -- z --> p -(worklist2);
+    p some_extra2 -- z --> p some_extra21 -(jobs2);
+    p some_extra2 -- z --> p some_extra21 +(worklist2) -(jobs2);
+    p some_extra21 -- z --> p;
+
+    p diverging -- z --> error;
+}
+inits { p init }
+final { error }
+reversals { 1 }
+constraint { 
+    (((worklist <= worklist2) && (jobs < jobs2)) || 
+    ((worklist < worklist2) && (jobs <= jobs2))) 
+}

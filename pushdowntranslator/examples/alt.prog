@@ -1,0 +1,27 @@
+
+counter v reversals 0
+counter j reversals 0
+counter k reversals 1
+
+
+constraint (errorr > 1)
+
+start main
+
+procedure main()
+begin
+    while [v < 100] do
+    begin
+        v++;
+        k++;
+    end;
+
+    while [j < 100] do
+    begin
+        if [k == 0] then
+            echo errorr;
+        j++;
+        if [k > 0] then
+            k--;
+    end;
+end;

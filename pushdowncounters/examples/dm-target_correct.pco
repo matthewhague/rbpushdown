@@ -1,0 +1,105 @@
+
+pds {
+    r0 __find_target_type -- z --> r0 ftt1 [(targets > 0)];
+    r0 __find_target_type -- z --> r0 ftt_ret;
+    r0 ftt1 -- z --> r0 ftt2;
+    r0 ftt2 -- z --> r1;
+    r0 ftt2 -- z --> r0 __find_target_type;
+    r0 ftt_ret -- z --> r0;
+
+    r0 get_target_type -- z --> r0 gtt1;
+    r0 gtt1 -- z --> r0 __find_target_type gtt2;
+    r0 gtt2 -- z --> r0 gtt_ret;
+    r1 gtt2 -- z --> r0 gtt3;
+    r0 gtt3 -- z --> r0 gtt4;
+    r0 gtt3 -- z --> r0 gtt5;
+    r0 gtt4 -- z --> r0 gtt_ret;
+    r0 gtt5 -- z --> r0 gtt_ret;
+    r0 gtt_ret -- z --> r0;
+
+    r0 dm_get_target_type -- z --> r0 dgtt1;
+    r0 dm_get_target_type -- z --> r0 dgtt_ret;
+    r0 dgtt1 -- z --> r0 dgtt2;
+    r0 dgtt2 -- z --> r0 get_target_type dgtt_ret;
+    r0 dgtt_ret -- z --> r0;
+
+    r0 dm_put_target_type -- z --> r0 dptt1;
+    r0 dptt1 -- z --> r0 dptt2;
+    r0 dptt2 -- z --> r0 dptt3;
+    r0 dptt2 -- z --> r0 dptt4;
+    r0 dptt3 -- z --> r0 dptt4;
+    r0 dptt4 -- z --> r0 dptt5;
+    r0 dptt4 -- z --> r0 dptt5;
+    r0 dptt5 -- z --> r0 dptt_ret;
+    r0 dptt_ret -- z --> r0;
+
+    r0 alloc_target -- z --> r0 at1;
+    r0 at1 -- alloc --> r0 at2;
+    r0 at2 -- z --> r0 at_ret;
+    r0 at2 -- z --> r0 at3;
+    r0 at3 -- z --> r0 at4;
+    r0 at4 -- z --> r0 at_ret;
+    r0 at_ret -- z --> r0;
+
+    r0 dm_register_target -- here --> r0 drt_rv0_1;
+    r0 drt_rv0_1 -- z --> r0 alloc_target drt_rv0_2;
+    r0 drt_rv0_2 -- z --> r0 drt_rv0_3;
+    r0 drt_rv0_3 -- z --> r0 __find_target_type drt_rv0_4;
+    r1 drt_rv0_4 -- z --> r0 drt_rv0_6;
+    r0 drt_rv0_4 -- z --> r0 drt_rv0_7;
+    r0 drt_rv0_6 -- z --> r0 drt_rv1_8;
+    r0 drt_rv0_7 -- z --> r0 drt_rv0_8 +(targets);
+    r0 drt_rv1_8 -- z --> r0 drt_rv1_9;
+    r0 drt_rv0_8 -- z --> r0 drt_rv0_9;
+    r0 drt_rv1_9 -- z --> r0 drt_rv1_10;
+    r0 drt_rv0_9 -- z --> r0 drt_rv0_ret;
+    r0 drt_rv1_10 -- free --> r0 drt_rv1_ret;
+    r0 drt_rv0_ret -- z --> r1;
+    r0 drt_rv1_ret -- z --> r0;
+
+    r0 dm_unregister_target -- z --> r0 dur1;
+    r0 dur1 -- z --> r0 __find_target_type dur2;
+    r0 dur2 -- z --> r0 dur3;
+    r1 dur2 -- z --> r0 dur5;
+    r0 dur3 -- z --> r0 dur4;
+    r0 dur4 -- z --> r0;
+    r0 dur5 -- z --> r0 dur8;
+    r0 dur5 -- z --> r0 dur6;
+    r0 dur6 -- z --> r0 dur7;
+    r0 dur7 -- z --> r0;
+    r0 dur8 -- z --> r0 dur9 -(targets);
+    r0 dur9 -- free --> r0 dur10;
+    r0 dur10 -- z --> r0 dur_ret;
+    r0 dur_ret -- z --> r1;
+
+
+    r0 dm_target_init -- z --> r0 dm_register_target;
+
+    r0 dm_target_exit -- z --> r0 dm_unregister_target dte1;
+    r0 dte1 -- expected_err --> r0;
+    r1 dte1 -- z --> r0;
+
+    r0 init -- z --> r0 dm_target_init init_res;
+    r0 init_res -- z --> r0;
+    r1 init_res -- z --> r0 test;
+
+    r0 test -- z --> r0 done;
+    r0 test -- z --> r0 dm_register_target reg;
+    r0 test -- z --> r0 dm_unregister_target unreg;
+    r0 test -- z --> r0 dm_get_target_type test;
+    r0 test -- z --> r0 dm_put_target_type test;
+    r0 reg -- z --> r0 test;
+    r1 reg -- reg_succ --> r0 test;
+    r0 unreg -- z --> r0 test;
+    r1 unreg -- unreg_succ --> r0 test;
+
+    r0 done -- z --> r0 dm_target_exit;
+}
+inits { r0 init }
+final { r0 }
+reversals { 1 }
+constraint {
+    ((reg_succ == unreg_succ) && !(alloc == free) && !(expected_err > 0))
+}
+
+

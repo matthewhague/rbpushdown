@@ -1,0 +1,188 @@
+
+#pragma once
+
+#include <iostream>
+#include <vector>
+
+#include "boost/shared_ptr.hpp"
+
+using namespace std;
+
+namespace pres {
+
+    class EPresburger;
+
+    typedef boost::shared_ptr<EPresburger> pres_ptr;
+
+    class EPresburger {
+        public:
+            virtual void to_stream(ostream& output) const = 0;
+            friend ostream& operator<<(ostream& output,  EPresburger const& f) {
+                f.to_stream(output);
+                return output;
+            }
+            friend ostream& operator<<(ostream& output,  pres_ptr const& f) {
+                f->to_stream(output);
+                return output;
+            }
+    };
+
+
+
+
+
+    class EPBool : public EPresburger {
+        bool value;
+
+        public:
+            EPBool(bool new_value) { value = new_value; }
+            ~EPBool() {}
+
+            virtual void to_stream(ostream& output) const { output << value; }
+    };
+
+
+    class EPAssocBin : public EPresburger {
+        vector<pres_ptr> clauses;
+    
+        public:
+            EPAssocBin(vector<pres_ptr> const& new_clauses) : clauses(new_clauses) {}
+            ~EPAssocBin() {}
+
+            vector<pres_ptr> const& get_clauses() const { return clauses; }
+            virtual void to_stream(ostream& output) const;
+
+        private:
+            virtual string get_connective() const = 0;
+    };
+
+
+    class EPConj : public EPAssocBin {
+        public:
+            EPConj(vector<pres_ptr> const& conjuncts) : EPAssocBin(conjuncts) {}
+        private:
+            virtual string get_connective() const { return "&&"; }
+    };
+
+    class EPDisj : public EPAssocBin {
+        public:
+            EPDisj(vector<pres_ptr> const& disjuncts) : EPAssocBin(disjuncts) {}
+        private:
+            virtual string get_connective() const { return "||"; }
+    };
+
+    class EPExists : public EPresburger {
+        vector<string> vars;
+        pres_ptr fmla;
+
+        public:
+            EPExists(vector<string> const& new_vars, pres_ptr& new_fmla) 
+                : vars(new_vars), fmla(new_fmla) { }
+            ~EPExists() {}
+
+            void to_stream(ostream& output) const;
+    };
+
+
+    class EPImplies : public EPresburger {
+        pres_ptr lhs;
+        pres_ptr rhs;
+
+        public:
+            EPImplies(pres_ptr new_lhs, pres_ptr new_rhs) 
+                : lhs(new_lhs), rhs(new_rhs) {};
+
+            virtual void to_stream(ostream& output) const { 
+                output << "(" << lhs << ") => (" << rhs << ")";
+            }
+    };
+
+
+    class EPVal;
+
+    typedef boost::shared_ptr<EPVal> val_ptr;
+
+    class EPVal {
+        public:
+            virtual void to_stream(ostream& output) const = 0;
+            friend ostream& operator<<(ostream& output,  EPVal const& f) {
+                f.to_stream(output);
+                return output;
+            }
+            friend ostream& operator<<(ostream& output,  val_ptr const& f) {
+                f->to_stream(output);
+                return output;
+            }
+    };
+
+
+    class EPCompare : public EPresburger {
+        val_ptr lhs;
+        val_ptr rhs;
+
+        public:
+            EPCompare(val_ptr& new_lhs, val_ptr& new_rhs) : lhs(new_lhs), rhs(new_rhs) {}
+            ~EPCompare() {}
+
+            virtual void to_stream(ostream& output) const {
+                output << "(" << lhs << ") " << get_connective() << " (" << rhs << ")";
+            }
+        
+        private:
+            virtual string get_connective() const = 0;
+    };
+
+    class EPEqual : public EPCompare {
+        public:
+            EPEqual(val_ptr& lhs, val_ptr& rhs) : EPCompare(lhs, rhs) {}
+        private:
+            virtual string get_connective() const { return "="; }
+    };
+
+    class EPLessThanEq : public EPCompare {
+        public:
+            EPLessThanEq(val_ptr& lhs, val_ptr& rhs) : EPCompare(lhs, rhs) {}
+        private:
+            virtual string get_connective() const { return "<="; }
+    };
+
+    class EPLessThan : public EPCompare {
+        public:
+            EPLessThan(val_ptr& lhs, val_ptr& rhs) : EPCompare(lhs, rhs) {}
+        private:
+            virtual string get_connective() const { return "<"; }
+    };
+
+    class EPVar : public EPVal {
+        string name;
+
+        public:
+            EPVar(string const& new_name) : name(new_name) {}
+            ~EPVar() {}
+            
+            virtual void to_stream(ostream& output) const { output << name; }
+    };
+
+    class EPInteger : public EPVal {
+        int value;
+
+        public:
+            EPInteger(int new_value) { value = new_value; }
+            ~EPInteger() {}
+
+            virtual void to_stream(ostream& output) const { output << value; }
+    };
+
+
+    class EPPlus : public EPVal {
+        vector<val_ptr> operands;
+
+        public:
+            EPPlus(vector<val_ptr> const& new_ops) : operands(new_ops) {}
+            ~EPPlus() {}
+
+            virtual void to_stream(ostream& output) const;
+    };
+
+}
+

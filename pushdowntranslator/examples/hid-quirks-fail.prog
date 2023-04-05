@@ -1,0 +1,177 @@
+
+counter dquirks_list reversals 1
+
+shared bool dquirks_rwsem
+
+bool ret
+
+start tester1
+start tester2
+
+switches 2
+
+constraint (free != alloc)
+
+
+procedure usbhid_exists_dquirk()
+    bool bl_entry
+begin
+    if [dquirks_list > 0] then
+        while ?? do
+            if ?? then
+            begin
+                bl_entry = 1;
+                goto ued_break;
+            end;
+    
+ued_break: 
+    if {bl_entry} then
+        skip;
+
+    ret = bl_entry;
+    return;
+end;
+
+
+procedure usbhid_modify_dquirk()
+	bool q_new
+	bool list_edited
+begin
+	if ?? then
+    begin
+		ret = 0;
+		return;
+	end;
+
+    if ?? then
+    begin
+        echo alloc;
+        q_new = 1;
+    end;
+
+	if {!q_new} then
+    begin
+        ret = 0;
+		return;
+	end;
+
+	lock dquirks_rwsem;
+
+
+    if [dquirks_list > 0] then
+        while ?? do
+            if ?? then
+            begin
+                list_edited = 1;
+                goto umd_break;
+            end;
+
+umd_break:
+	if {!list_edited} then
+		dquirks_list++;
+    
+	unlock dquirks_rwsem;
+
+    ret = 1;
+	return;
+end;
+
+
+procedure usbhid_remove_all_dquirks()
+begin
+	lock dquirks_rwsem;
+    while [dquirks_list > 0] do 
+    begin
+        assert [dquirks_list > 0];
+        dquirks_list--;
+        echo free;
+    end;
+	unlock dquirks_rwsem;
+end;
+
+procedure usbhid_quirks_init()
+    bool m
+begin
+	while ?? do
+    begin
+        if ?? then
+            m = 0;
+        else
+            m = 1;
+
+		if {!m} then
+        begin
+		    usbhid_modify_dquirk();
+            m = ret, ret = 0;
+            if {!m} then
+                skip;
+		end;
+	end;
+
+    ret = 0;
+	return;
+end;
+
+procedure usbhid_quirks_exit()
+	usbhid_remove_all_dquirks();
+
+
+procedure usbhid_exists_squirk()
+	bool bl_entry
+begin
+	while ?? do
+		if ?? then
+			bl_entry = 1;
+
+	if {bl_entry} then
+        skip;
+
+    ret = bl_entry;
+	return;
+end;
+
+
+procedure usbhid_lookup_quirk()
+	bool quirks
+	bool bl_entry
+begin
+	if ?? then
+    begin
+        ret = 0;
+	    return;
+    end;
+
+	lock dquirks_rwsem;
+
+	usbhid_exists_dquirk();
+    bl_entry = ret, ret = 0;
+
+	if {!bl_entry} then
+    begin
+		usbhid_exists_squirk();
+        bl_entry = ret, ret = 0;
+    end;
+
+	if {bl_entry} then
+		quirks = 1;
+
+	unlock dquirks_rwsem;
+
+    ret = quirks;
+	return;
+end;
+
+
+procedure tester1()
+begin
+    usbhid_quirks_init();
+    while ?? do
+        usbhid_lookup_quirk();
+    usbhid_quirks_exit();
+end;
+
+
+procedure tester2()
+    while ?? do
+        usbhid_lookup_quirk();
+

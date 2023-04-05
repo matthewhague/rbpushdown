@@ -1,0 +1,14 @@
+
+
+counter i reversals 0
+
+constraint (the_end > 0)
+
+start main
+
+procedure main()
+begin
+    while [i <= 1000] do
+        i++;
+    echo the_end;
+end;

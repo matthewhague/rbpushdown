@@ -1,0 +1,10 @@
+pds {
+    p a1 -- z --> p a2 +(c1);
+    p a2 -- z --> p a3 -(c1);
+    p a3 -- z --> p a4 +(c1);
+    p a4 -- z --> q -(c1);
+}
+inits { p a1 }
+final { q }
+reversals { 2 }
+constraint { true }

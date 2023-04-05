@@ -1,0 +1,25 @@
+
+counter c reversals 0
+
+shared bool l
+
+start main
+start main2
+
+switches 1
+
+
+procedure main()
+begin
+    lock l;
+    c++;
+    unlock l;
+end;
+
+procedure main2()
+begin
+    lock l;
+    if [c == 0] then 
+        assert [c == 0];
+end;
+

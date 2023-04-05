@@ -1,0 +1,132 @@
+
+
+list dquirks_list;
+lock dquirks_rwsem;
+
+procedure usbhid_exists_dquirk()
+{
+	bool bl_entry = 0;
+
+    for_each(dquirks_list) {
+        if ?? {
+            bl_entry = 1;
+            break;
+        }
+    }
+
+	if (bl_entry) {
+        skip;
+    }
+
+	return bl_entry;
+}
+
+
+procedure usbhid_modify_dquirk()
+{
+	bool q_new = 0;
+	bool list_edited = 0;
+
+	if ?? {
+		skip;
+		return 0;
+	}
+
+    if ?? {
+        alloc;
+        q_new = 1;
+    }
+
+	if (!q_new) {
+		skip;
+		return 0;
+	}
+
+	lock dquirks_rwsem;
+
+
+    for_each(dquirks_list) {
+        if ?? {
+            free;
+            list_edited = 1;
+            break;
+        }
+    }
+
+	if (!list_edited) {
+		add_list(dquirks_list);
+    }
+
+	unlock dquirks_rwsem;
+
+	return 1;
+}
+
+
+procedure usbhid_remove_all_dquirks()
+{
+	lock dquirks_rwsem;
+    for_each (dquirks_list) {
+        dquirks_list--;
+        free
+    }
+	unlock dquirks_rwsem;
+}
+
+procedure usbhid_quirks_init()
+{
+    bool m;
+
+	for ?? {
+        m = ??;
+		if (!m) {
+		    m = usbhid_modify_dquirk();
+            if (!m) {
+                skip;
+            }
+		}
+	}
+
+	return 0;
+}
+
+procedure usbhid_quirks_exit()
+{
+	usbhid_remove_all_dquirks();
+}
+
+procedure usbhid_exists_squirk()
+{
+	bool bl_entry = 0;
+
+	for ?? {
+		if (??)
+			bl_entry = 1;
+    }
+
+	if (bl_entry)
+        skip;
+
+	return bl_entry;
+}
+
+u32 usbhid_lookup_quirk(const u16 idVendor, const u16 idProduct)
+{
+	bool quirks = 0;
+	bool bl_entry = 0;
+
+	if (??)
+	    return 0;
+
+	lock dquirks_rwsem;
+	bl_entry = usbhid_exists_dquirk();
+	if (!bl_entry)
+		bl_entry = usbhid_exists_squirk();
+	if (bl_entry)
+		quirks = 1
+	unlock dquirks_rwsem;
+
+	return quirks;
+}
+
+EXPORT_SYMBOL_GPL(usbhid_lookup_quirk);

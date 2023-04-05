@@ -1,0 +1,20 @@
+
+
+
+start test
+start test
+
+counter c reversals 1
+
+switches 2
+
+procedure test()
+begin
+    while ?? do
+        c++;
+    if [c > 0] then
+    begin
+        assert [c > 0];
+        c--;
+    end;
+end;

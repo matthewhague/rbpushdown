@@ -1,0 +1,44 @@
+Q: What is synpco2z3?
+A: It is a tool for doing synchronisation-bounded and reversal-bounded
+   analysis of concurrent programs with numeric data types. The tool is
+   based on the technique presented in the CAV'12 paper:
+
+        http://homepages.inf.ed.ac.uk/v1awidja/papers/cav12-long.pdf
+
+USAGE
+-----
+
+This document gives a brief description of how to use synpco2z3. 
+
+System requirements: 
+- SWI-Prolog (at least version 5.10)
+- Z3 SMT-Solver
+
+How to use:
+- invoke swi-prolog
+- query '[call].' (this invokes all the predicates of synpco2z3)
+- to test the correct version of producer consumer example (from wiki) with 
+  reversal parameter 1 and context switch parameter 2, invoke 'mycall6'.
+- to test the correct version of producer consumer example (from wiki) with 
+  reversal parameter 1 and context switch parameter 2, invoke 'mycall3'.
+- the output formula is produced in output.txm
+
+
+How to create your own synpco in synpco2z3:
+- see the definitions of the predicates synpco_example_prod_cons and mycall3
+  the file call.pl
+- see the definitions of the predicates synpco_example_prod_cons_corr and 
+  mycall6 the file call.pl
+
+Files:
+- call.pl   - Main file containing wrapper functionalities
+- synpco.pl - file that implements synchronous pushdown with counters
+- pds.pl    - file that implements pushdown automata
+- cg.pl     - file that implements context-free grammars
+- tree.pl   - file that implements static trees
+- output.txt- output formula to be fed into Z3
+
+Question
+--------
+
+If you have any question, contact Anthony Widjaja Lin (antto@cs.ox.ac.uk).

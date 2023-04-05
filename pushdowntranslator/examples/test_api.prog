@@ -1,0 +1,28 @@
+
+
+
+counter crypto_alg_list reversals 1
+
+shared bool crypto_alg_sem
+
+bool ret
+
+
+start crypto_register_alg
+start crypto_unregister_alg
+
+switches 1
+
+
+procedure crypto_register_alg()
+begin
+    crypto_alg_list++;
+end;
+
+procedure crypto_unregister_alg()
+begin
+    assert [crypto_alg_list == 0];
+    unlock crypto_alg_sem;
+end;
+
+

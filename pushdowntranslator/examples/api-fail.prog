@@ -1,0 +1,319 @@
+
+
+
+counter crypto_alg_list reversals 1
+
+shared bool crypto_alg_sem
+
+bool ret
+
+
+start tester
+start tester
+
+switches 2
+
+constraint ((register == unregister) && 
+            (did_alloc == did_free) && 
+            (free != alloc))
+
+
+procedure crypto_alg_get()
+    if ?? then
+        ret = 0;
+    else
+        ret = 1;
+
+
+procedure crypto_alg_put()
+    if ?? then
+        skip;
+
+
+procedure crypto_alg_lookup()
+    bool alg
+begin
+    if ?? then
+    begin
+        ret = 0;
+        return;
+    end;
+
+    lock crypto_alg_sem;
+
+    if [crypto_alg_list > 0] then
+    begin
+        while ?? do
+        begin
+            if ?? then
+            begin
+                crypto_alg_get();
+                if {ret} then
+                begin
+                    ret = 0, alg = 1;
+                    goto break1;
+                end;
+            end;
+        end;
+    end;
+
+    break1: unlock crypto_alg_sem;
+
+    ret = alg, alg = 0;
+    return; 
+end;
+
+
+procedure crypto_init_flags()
+begin
+    switch
+        case: 
+        begin
+            if ?? then 
+                ret = 0;
+            else 
+                ret = 1;
+            return;
+        end;
+
+        case: 
+        begin
+            if ?? then 
+                ret = 0;
+            else 
+                ret = 1;
+            return;
+        end;
+
+        case: 
+        begin
+            if ?? then 
+                ret = 0;
+            else 
+                ret = 1;
+            return;
+        end;
+       
+        case: skip;
+    end;    
+
+    ret = 0;
+    return;
+end;
+
+
+procedure crypto_init_ops()
+begin
+    switch
+        case: 
+        begin
+            if ?? then 
+                ret = 0;
+            else 
+                ret = 1;
+            return;
+        end;
+
+        case: 
+        begin
+            if ?? then 
+                ret = 0;
+            else 
+                ret = 1;
+            return;
+        end;
+
+        case: 
+        begin
+            if ?? then 
+                ret = 0; 
+            else 
+                ret = 1;
+            return;
+        end;
+       
+        case: skip;
+    end;    
+
+    ret = 0;
+    return;
+end;
+
+procedure crypto_exit_ops()
+begin
+    switch 
+        case: skip;
+        case: skip;
+        case: skip;
+        case: skip;
+    end;
+end;
+
+procedure crypto_alloc_tfm()
+    bool tfm
+    bool alg
+begin
+    if ?? then
+        alg = 0;
+    else
+        alg = 1;
+
+    if {!alg} then
+        goto cat_out;
+
+    if ?? then
+    begin
+        echo alloc;
+        tfm = 1;
+    end;
+
+    if {!tfm} then
+        goto cat_out_put;
+
+    crypto_init_flags();
+    if {ret} then
+    begin
+        ret = 0;
+        goto cat_out_free_tfm;
+    end;
+
+    crypto_init_ops();
+    if {ret} then
+    begin
+        ret = 0;
+        crypto_exit_ops();
+        goto cat_out_free_tfm;
+    end;
+
+    goto cat_out;
+
+cat_out_free_tfm:
+    echo free;
+    tfm = 0;
+cat_out_put:
+    crypto_alg_put();
+cat_out:
+    ret = tfm;
+    return;
+end;
+
+procedure crypto_free_tfm()
+begin
+    crypto_exit_ops();
+    crypto_alg_put();
+    echo free;
+    ret = 1;
+    return;
+end;
+
+procedure crypto_register_alg()
+    bool lret
+begin
+    lret = 1;
+
+    lock crypto_alg_sem;
+
+    if [crypto_alg_list > 0] then 
+    begin
+        while ?? do
+        begin
+            if ?? then
+            begin
+                lret = 0;
+                goto cra_out;
+            end;
+        end;
+    end;
+
+    crypto_alg_list++;
+cra_out:
+    unlock crypto_alg_sem;
+    ret = lret, lret = 0;
+    return;
+end;
+
+procedure crypto_unregister_alg()
+    bool lret
+begin
+    
+    if [crypto_alg_list > 0] then
+    begin
+        while ?? do
+        begin
+            if ?? then
+            begin
+                assert [crypto_alg_list > 0];
+                crypto_alg_list--;
+                lret = 1;
+                goto cua_out;
+            end;
+        end;
+    end;
+
+cua_out:
+    unlock crypto_alg_sem;
+    ret = lret, lret = 0;
+    return;
+end;
+
+procedure crypto_alg_available()
+begin
+    if ?? then
+        crypto_alg_put();
+    
+    return;
+end;
+
+
+procedure tester()
+begin
+    while ?? do
+    begin
+        switch
+            case: 
+            begin
+                crypto_register_alg();
+                if {ret} then
+                begin
+                    ret = 0;
+                    echo register;
+                end;
+            end;
+
+            case: 
+            begin
+                crypto_unregister_alg();
+                if {ret} then
+                begin
+                    ret = 0;
+                    echo unregister;
+                end;
+            end;
+
+            case: 
+            begin
+                crypto_alloc_tfm();
+                if {ret} then
+                begin
+                    ret = 0;
+                    echo did_alloc;
+                end;
+            end;
+
+            case: 
+            begin
+                crypto_free_tfm();
+                if {ret} then
+                begin
+                    ret = 0;
+                    echo did_free;
+                end;
+            end;
+
+            case: crypto_alg_available();
+        end;
+    end;
+end;
+
+
+

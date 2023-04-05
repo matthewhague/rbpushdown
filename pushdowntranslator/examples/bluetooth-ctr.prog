@@ -1,0 +1,70 @@
+
+shared bool stopped
+shared bool driverStoppingFlag
+shared bool stoppingEvent
+
+counter pendingIo reversals 1
+
+bool ret
+
+start thread0
+start thread1
+
+switches 5
+
+procedure IoDec()
+begin
+    pendingIo--;
+    if [pendingIo == 0] then
+           stoppingEvent = 1;
+    
+    return;
+end;
+ 
+procedure IoInc()
+    bool status
+begin
+    pendingIo++;
+
+    if {driverStoppingFlag} then
+    begin
+            IoDec();
+            status=0;
+    end;
+    else 
+        status=1;
+    ret = status;
+    return;
+end;
+
+
+procedure thread0()
+    bool status
+begin
+    pendingIo++;
+    IoInc();
+    status = ret, ret = 0;
+    if {status} then
+    begin
+        skip;
+        if {stopped} then
+            assert {0};
+    end;
+    IoDec();
+end;
+
+
+procedure thread1()
+begin
+    while [pendingIo == 0] do
+        skip;
+    driverStoppingFlag = 1;
+    IoDec();
+    while {!stoppingEvent} do
+            skip;
+    stopped = 1;
+end;
+
+
+
+
