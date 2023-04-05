@@ -38,7 +38,7 @@ namespace prog2pds {
         public:
             virtual void f(int new_ret_hash) const = 0;
     };
-    
+
     class PassOnWatcher : public WatcherFun {
         Prog2PDS* daddy;
         int stmt_id;
@@ -173,24 +173,24 @@ namespace prog2pds {
             void do_block(prog::StatementBlock const& s,
                           int cont,
                           vexp::environment_ptr env);
-            void do_if(prog::StatementIf const& s, 
-                       int cont, 
+            void do_if(prog::StatementIf const& s,
+                       int cont,
                        vexp::environment_ptr env);
-            void do_while(prog::StatementWhile const& s, 
+            void do_while(prog::StatementWhile const& s,
                           int cont,
                           vexp::environment_ptr env);
-            void do_assign(prog::StatementAssign const& s, 
+            void do_assign(prog::StatementAssign const& s,
                            int cont,
                            vexp::environment_ptr env);
-            void do_call(prog::StatementCall const& s, 
+            void do_call(prog::StatementCall const& s,
                          int cont,
                          vexp::environment_ptr env);
-            void do_return(prog::StatementReturn const& s, 
-                           vexp::environment_ptr env);            
-            void do_counter_adj(prog::StatementCounterAdj const& s, 
+            void do_return(prog::StatementReturn const& s,
+                           vexp::environment_ptr env);
+            void do_counter_adj(prog::StatementCounterAdj const& s,
                                 int cont,
                                 vexp::environment_ptr env);
-            void do_echo(prog::StatementEcho const& s, 
+            void do_echo(prog::StatementEcho const& s,
                          int cont,
                          vexp::environment_ptr env);
             void do_switch(prog::StatementSwitch const& s,
@@ -199,10 +199,10 @@ namespace prog2pds {
             void do_assert(prog::StatementAssert const& s,
                            int cont,
                            vexp::environment_ptr env);
-            void do_lock(prog::StatementLock const& s, 
+            void do_lock(prog::StatementLock const& s,
                          int cont,
                          vexp::environment_ptr env);
-            void do_goto(prog::StatementGoto const& s, 
+            void do_goto(prog::StatementGoto const& s,
                          vexp::environment_ptr env);
 
             void register_stmt_ptr(prog::statement_ptr s) {
@@ -226,19 +226,19 @@ namespace prog2pds {
 
 
             void pass_on_watcher(int stmt_id, int env_hash, int new_ret_hash);
-            void fun_call_watcher(int stmt_id,  
-                                  int env_hash, 
-                                  int ret_to_stmt_id, 
+            void fun_call_watcher(int stmt_id,
+                                  int env_hash,
+                                  int ret_to_stmt_id,
                                   int new_ret_hash);
 
             // needed by builder in add_constraint()
             std::string make_thread_name(int n);
-            std::string make_action(std::string const& act) { 
-                return make_action(act, pds_name); 
+            std::string make_action(std::string const& act) {
+                return make_action(act, pds_name);
             }
             std::string make_action(std::string const& act,
-                                    std::string const& pds_name) { 
-                return act + "_" + pds_name; 
+                                    std::string const& pds_name) {
+                return act + "_" + pds_name;
             }
 
 
@@ -259,7 +259,7 @@ namespace prog2pds {
             prog::procedure_ptr get_name_procedure(std::string const& name) {
                 auto it = m_name_procedure.find(name);
                 if (it == m_name_procedure.end()) {
-                    std::cerr << "Prog2PDS::get_name_procedure of " 
+                    std::cerr << "Prog2PDS::get_name_procedure of "
                               << name
                               << " failed." << std::endl;
                     exit(-1);
@@ -271,8 +271,8 @@ namespace prog2pds {
                 StatementInfo& info = getadd_stmt_info(s.get_id());
                 info.env = e;
             }
-            
-            void set_statement_can_switch(prog::Statement const& s, 
+
+            void set_statement_can_switch(prog::Statement const& s,
                                           bool can_switch_pre,
                                           bool can_switch_post) {
                 StatementInfo& info = getadd_stmt_info(s.get_id());
@@ -297,8 +297,8 @@ namespace prog2pds {
             std::string make_control(vexp::Environment const& e,
                                      std::string const& pds_name,
                                      bool can_switch = false);
-            std::string make_final(std::string const& pds_name) { 
-                return FINAL_CONTROL + pds_name; 
+            std::string make_final(std::string const& pds_name) {
+                return FINAL_CONTROL + pds_name;
             }
             std::string make_wait_control(vexp::Environment const& e) {
                 return make_wait_control(e, pds_name);
@@ -320,7 +320,7 @@ namespace prog2pds {
                              std::string const& act,
                              std::string const& q,
                              std::string const& b,
-                             cexp::counterexp_ptr cc,
+                             ctrexp::counterexp_ptr cc,
                              std::set<std::pair<std::string,int>>* counter_acts = NULL);
 
             void add_push(std::string const& p,
@@ -329,26 +329,26 @@ namespace prog2pds {
                           std::string const& q,
                           std::string const& b,
                           std::string const& c,
-                          cexp::counterexp_ptr cc,
+                          ctrexp::counterexp_ptr cc,
                           std::set<std::pair<std::string,int>>* counter_acts = NULL);
 
             void add_pop(std::string const& p,
                          std::string const& a,
                          std::string const& act,
                          std::string const& q,
-                         cexp::counterexp_ptr cc,
+                         ctrexp::counterexp_ptr cc,
                          std::set<std::pair<std::string,int>>* counter_acts = NULL);
 
 
             // deals with all the environment and watcher and worklist stuff
             // and adds a pop or rewrite depending on whether cont is NO_STMT
-            void add_sloppy_rewrite(int stmt_id, 
+            void add_sloppy_rewrite(int stmt_id,
                                     int env_hash,
                                     std::string const& act,
-                                    int cont, 
+                                    int cont,
                                     int next_hash,
                                     vexp::environment_ptr env,
-                                    cexp::counterexp_ptr cc,
+                                    ctrexp::counterexp_ptr cc,
                                     std::set<std::pair<std::string,int>>* counter_acts = NULL);
 
             void add_goto_control(int stmt_id,
@@ -356,13 +356,13 @@ namespace prog2pds {
                                   vexp::environment_ptr env,
                                   std::string const& action,
                                   std::string const& dest_control,
-                                  cexp::counterexp_ptr cc);
-            
+                                  ctrexp::counterexp_ptr cc);
+
             void add_goto_from_stack(std::string const& from_stack,
                                      vexp::environment_ptr env,
                                      int to_stmt_id,
                                      std::string const& action,
-                                     cexp::counterexp_ptr cc);
+                                     ctrexp::counterexp_ptr cc);
 
 
             gls get_var_scope(std::string const& v);
@@ -371,7 +371,7 @@ namespace prog2pds {
 
             void do_cond_jump(bool nondet,
                               vexp::varexpression_ptr vc,
-                              cexp::counterexp_ptr cc,
+                              ctrexp::counterexp_ptr cc,
                               int stmt_id,
                               int then_cont,
                               int else_cont,
@@ -385,11 +385,11 @@ namespace prog2pds {
             void mark_head_reached(int stmt_id, int env_hash);
             void do_head_reachability(int stmt_id, int env_hash);
 
-            void add_pass_on_watcher(int stmt_id, 
-                                     int env_hash, 
-                                     int w_stmt_id, 
-                                     int w_env_hash);    
-                                     
+            void add_pass_on_watcher(int stmt_id,
+                                     int env_hash,
+                                     int w_stmt_id,
+                                     int w_env_hash);
+
             void add_fun_call_watcher(int stmt_id,
                                       int env_hash,
                                       int ret_stmt_id,
@@ -402,7 +402,7 @@ namespace prog2pds {
             void add_constraint();
             void add_wait_controls(pds::pds_ptr p, std::string const& name);
 
-            bool is_shared(cexp::counterexp_ptr cc) {
+            bool is_shared(ctrexp::counterexp_ptr cc) {
                 // every counter is global, assume at least one is used...
                 if (cc) // to get around some bug or other, do this clunky thing
                     return 1;
@@ -434,13 +434,13 @@ namespace prog2pds {
 //
 // So we only want to produce rules that are at least superficially reachable.
 // So essentially, if we add p a -> p b, then p b is reachable and we should add
-// rules for p b.  
+// rules for p b.
 //
 // This gets tricky when we have p a -> q b c since we don't know what the
 // control state will be when we return from b.  So, we attach HeadInfo to each
 // head (p a), which contains the set of control states we may return to.  So,
 // if we add a rule p a -> q b c, everytime we discover that the head (q b) may
-// return to control r, then we need to add rules for the head (r c).  
+// return to control r, then we need to add rules for the head (r c).
 //
 // Also, if we have p a -> q b and we discover (q b) may return to r, then (p a)
 // may return to r.
@@ -448,7 +448,7 @@ namespace prog2pds {
 // So we maintain these return to sets, and a list of "watchers" who are
 // interested in when we add something to the return to sets.  There are "pass
 // on watchers" which correspond to the second case (i.e. if you can reach it, i
-// can too) and "fun call watchers" who are the p a -> q b c rules.  
+// can too) and "fun call watchers" who are the p a -> q b c rules.
 //
 // And in all of this, we don't have heads in terms of control states, but a
 // statement id and an environment (hash).  From this we can build the control
@@ -474,7 +474,7 @@ namespace prog2pds {
 //     rew (p a -> q b ):
 //         add_to_worklist(q, b)
 //         add_pass_on_watcher(p, a, q, b)
-//          
+//
 //     push (p a -> q b c):
 //         add_to_worklist(q, b)
 //         add_fun_call_watcher(p, a, q, b)
@@ -488,10 +488,10 @@ namespace prog2pds {
 //
 //  add_*_watcher(p, a, q, b)
 //      add watcher (p, a) to list for (q, b)
-//      for all q' in summary of (q, b) alert watcher 
+//      for all q' in summary of (q, b) alert watcher
 //      (to get them up to speed, of course)
 //
-// 
+//
 // The pass on watcher is simple:
 //
 // On alert of new q for watcher (p, a)

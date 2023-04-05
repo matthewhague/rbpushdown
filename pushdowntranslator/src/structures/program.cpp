@@ -7,7 +7,7 @@
 
 using namespace std;
 using namespace prog;
-using namespace cexp;
+using namespace ctrexp;
 
 int Statement::next_id = 0;
 
@@ -44,8 +44,8 @@ void Program::to_stream(ostream& output) const {
 int Program::get_reversals(std::string const& counter) const {
     auto it = counter_revs.find(counter);
     if (it == counter_revs.end()) {
-        cerr << "Program::get_reversals has no reversals setting for counter " 
-             << counter 
+        cerr << "Program::get_reversals has no reversals setting for counter "
+             << counter
              << endl;
         exit(-1);
     }
@@ -68,7 +68,7 @@ void Procedure::to_stream(ostream& output) const {
     for (string const& s : locals) {
         output << TAB << "bool " << s << "\n";
     }
-    
+
     if (statement)
         statement->to_stream(output, TAB);
     else
@@ -107,12 +107,12 @@ void StatementIf::to_stream(ostream& output, string const& indent) const {
 
     output << "if ";
 
-    if (is_nondet()) 
+    if (is_nondet())
         output << "??";
     else {
-        if (var_conditional) 
+        if (var_conditional)
             output << "{" << (*var_conditional) << "}";
-        if (counter_conditional) 
+        if (counter_conditional)
             output << "[" << (*counter_conditional) << "]";
     }
 
@@ -136,9 +136,9 @@ void StatementWhile::to_stream(ostream& output, string const& indent) const {
     if (is_nondet())
         output << "??";
     else {
-        if (var_conditional) 
+        if (var_conditional)
             output << "{" << (*var_conditional) << "}";
-        if (counter_conditional) 
+        if (counter_conditional)
             output << "[" << (*counter_conditional) << "]";
     }
     output << " do\n";
@@ -170,7 +170,7 @@ void StatementReturn::to_stream(ostream& output, string const& indent) const {
 
 void StatementCounterAdj::to_stream(ostream& output, string const& indent) const {
     output_indent_labels(output, indent);
-    output << counter; 
+    output << counter;
     if (increment < 0)
         output << " -= ";
     else
@@ -212,9 +212,9 @@ void StatementSwitch::to_stream(std::ostream& output, std::string const& indent)
 void StatementAssert::to_stream(std::ostream& output, std::string const& indent) const {
     output_indent_labels(output, indent);
     output << "assert ";
-    if (var_conditional) 
+    if (var_conditional)
         output << "{" << (*var_conditional) << "}";
-    if (counter_conditional) 
+    if (counter_conditional)
         output << "[" << (*counter_conditional) << "]";
     output << ";";
 }
@@ -256,13 +256,13 @@ vector<string> Program::check_consistency() {
             public:
                 Trawler(vector<string>& new_errors,
                         set<string> const& new_counters,
-                        set<string> const& new_freevariables) 
+                        set<string> const& new_freevariables)
                     : errors(new_errors),
                       counters(new_counters),
                       freevariables(new_freevariables) { }
 
                 void visit(StatementBlock& s) {
-                    for (statement_ptr sub_s : s.get_statements()) 
+                    for (statement_ptr sub_s : s.get_statements())
                         sub_s->accept(*this);
                 }
 
@@ -274,9 +274,9 @@ vector<string> Program::check_consistency() {
                     statement_ptr then_s = s.get_then_stmt();
                     statement_ptr else_s = s.get_else_stmt();
 
-                    if (then_s) 
+                    if (then_s)
                         then_s->accept(*this);
-                    if (else_s) 
+                    if (else_s)
                         else_s->accept(*this);
                 }
 
@@ -285,19 +285,19 @@ vector<string> Program::check_consistency() {
                     if (cc)
                         cc->accept(*this);
                     statement_ptr body = s.get_body();
-                    if (body) 
+                    if (body)
                         body->accept(*this);
                 }
 
                 void visit(StatementSwitch& s) {
-                    for (statement_ptr sub_s : s.get_branches()) 
+                    for (statement_ptr sub_s : s.get_branches())
                         sub_s->accept(*this);
                 }
 
                 void visit(StatementCounterAdj& s) {
                     string const& c = s.get_counter();
                     if (counters.find(c) == counters.end())
-                        errors.push_back("ident " + c + 
+                        errors.push_back("ident " + c +
                                          " is not a counter, but used as one!");
                 }
 
@@ -308,12 +308,12 @@ vector<string> Program::check_consistency() {
                 void visit(CExpConst& b) { }
 
                 void visit(CExpAnd& b) {
-                    for (counterexp_ptr e : b.get_operands()) 
+                    for (counterexp_ptr e : b.get_operands())
                         e->accept(*this);
                 }
 
                 void visit(CExpOr& b) {
-                    for (counterexp_ptr e : b.get_operands()) 
+                    for (counterexp_ptr e : b.get_operands())
                         e->accept(*this);
                 }
 
@@ -330,8 +330,8 @@ vector<string> Program::check_consistency() {
                     string const& c = b.get_variable_name();
                     if (counters.find(c) == counters.end() &&
                         freevariables.find(c) == freevariables.end())
-                        errors.push_back("Counter comparison with " + 
-                                         c + 
+                        errors.push_back("Counter comparison with " +
+                                         c +
                                          " which is not a counter!");
                 }
 
@@ -339,14 +339,14 @@ vector<string> Program::check_consistency() {
                     string const& c = b.get_variable_name();
                     if (counters.find(c) == counters.end() &&
                         freevariables.find(c) == freevariables.end())
-                        errors.push_back("Counter comparison (lhs) with " + 
-                                         c + 
+                        errors.push_back("Counter comparison (lhs) with " +
+                                         c +
                                          " which is not a counter!");
 
                     string const& fv = b.get_freevariable_name();
                     if (freevariables.find(fv) == freevariables.end())
-                        errors.push_back("Free variable (rhs) comparison with " + 
-                                         fv + 
+                        errors.push_back("Free variable (rhs) comparison with " +
+                                         fv +
                                          " which is not a free variable!");
 
                 }

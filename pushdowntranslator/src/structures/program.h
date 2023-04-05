@@ -86,7 +86,7 @@ namespace prog {
             void set_constraint(pres::epresburger_ptr new_constraint) {
                 constraint = new_constraint;
             }
-            
+
             void add_procedure(procedure_ptr procedure);
 
             void add_thread(procedure_ptr run_procedure) {
@@ -113,7 +113,7 @@ namespace prog {
 
             int get_reversals(std::string const& counter) const;
 
-            void set_reversals(std::string const& counter, 
+            void set_reversals(std::string const& counter,
                                int reversals);
 
             std::vector<procedure_ptr> const& get_procedures() const {
@@ -215,7 +215,7 @@ namespace prog {
 
     class StatementVisitor {
         public:
-            virtual void visit(StatementBlock& s) = 0; 
+            virtual void visit(StatementBlock& s) = 0;
             virtual void visit(StatementAssign& s) = 0;
             virtual void visit(StatementIf& s) = 0;
             virtual void visit(StatementWhile& s) = 0;
@@ -242,7 +242,7 @@ namespace prog {
             int get_id() const {
                 return id;
             }
-            
+
             void add_label(std::string const& label) {
                 labels.insert(label);
             }
@@ -269,7 +269,7 @@ namespace prog {
             virtual void accept(StatementVisitor& v) = 0;
 
         protected:
-            void output_indent_labels(std::ostream& output, std::string const& indent) const;                
+            void output_indent_labels(std::ostream& output, std::string const& indent) const;
     };
 
     class StatementBlock : public Statement {
@@ -278,11 +278,11 @@ namespace prog {
         public:
             StatementBlock() { }
 
-            StatementBlock(std::vector<statement_ptr> const& new_statements) 
+            StatementBlock(std::vector<statement_ptr> const& new_statements)
                 : statements(new_statements) { }
 
             void append_statement(statement_ptr statement) {
-                if (statement) 
+                if (statement)
                     statements.push_back(statement);
             }
 
@@ -303,7 +303,7 @@ namespace prog {
 
     class StatementAssign : public Statement {
         std::vector<std::pair<std::string, vexp::varexpression_ptr>> assigns;
-        
+
         public:
             StatementAssign() { }
 
@@ -312,7 +312,7 @@ namespace prog {
                 assigns.push_back(std::make_pair(new_lhs, new_rhs));
             }
 
-            void add_assign(std::string const& new_lhs, 
+            void add_assign(std::string const& new_lhs,
                             vexp::varexpression_ptr new_rhs) {
                 assigns.push_back(std::make_pair(new_lhs, new_rhs));
             }
@@ -329,13 +329,13 @@ namespace prog {
             };
 
             virtual void accept(StatementVisitor& v) { v.visit(*this); }
-    }; 
+    };
 
 
     class StatementIf : public Statement {
         // if both are null, then we're representing a non-det choice
         vexp::varexpression_ptr var_conditional;
-        cexp::counterexp_ptr    counter_conditional;
+        ctrexp::counterexp_ptr  counter_conditional;
         statement_ptr           then_stmt;
         statement_ptr           else_stmt;
 
@@ -343,16 +343,16 @@ namespace prog {
             StatementIf() { }
 
             StatementIf(vexp::varexpression_ptr new_var_conditional,
-                        cexp::counterexp_ptr new_counter_conditional,
-                        statement_ptr new_then_stmt) 
+                        ctrexp::counterexp_ptr new_counter_conditional,
+                        statement_ptr new_then_stmt)
                 : var_conditional(new_var_conditional),
                   counter_conditional(new_counter_conditional),
                   then_stmt(new_then_stmt) { }
 
             StatementIf(vexp::varexpression_ptr new_var_conditional,
-                        cexp::counterexp_ptr new_counter_conditional,
+                        ctrexp::counterexp_ptr new_counter_conditional,
                         statement_ptr new_then_stmt,
-                        statement_ptr new_else_stmt) 
+                        statement_ptr new_else_stmt)
                 : var_conditional(new_var_conditional),
                   counter_conditional(new_counter_conditional),
                   then_stmt(new_then_stmt),
@@ -366,7 +366,7 @@ namespace prog {
                 var_conditional = new_conditional;
             }
 
-            void set_counter_conditional(cexp::counterexp_ptr new_conditional) {
+            void set_counter_conditional(ctrexp::counterexp_ptr new_conditional) {
                 counter_conditional = new_conditional;
             }
 
@@ -377,12 +377,12 @@ namespace prog {
             void set_else_stmt(statement_ptr new_else) {
                 else_stmt = new_else;
             }
-                
+
             vexp::varexpression_ptr get_var_conditional() const {
                 return var_conditional;
             }
 
-            cexp::counterexp_ptr get_counter_conditional() const {
+            ctrexp::counterexp_ptr get_counter_conditional() const {
                 return counter_conditional;
             }
 
@@ -407,7 +407,7 @@ namespace prog {
     class StatementWhile : public Statement {
         // if both are null, then we're representing a non-det choice
         vexp::varexpression_ptr var_conditional;
-        cexp::counterexp_ptr    counter_conditional;
+        ctrexp::counterexp_ptr    counter_conditional;
 
         statement_ptr      body;
 
@@ -415,7 +415,7 @@ namespace prog {
             StatementWhile() { }
 
             StatementWhile(vexp::varexpression_ptr new_var_conditional,
-                           cexp::counterexp_ptr new_counter_conditional,
+                           ctrexp::counterexp_ptr new_counter_conditional,
                            statement_ptr new_body)
                 : var_conditional(new_var_conditional),
                   counter_conditional(new_counter_conditional),
@@ -429,7 +429,7 @@ namespace prog {
                 var_conditional = new_conditional;
             }
 
-            void set_counter_conditional(cexp::counterexp_ptr new_conditional) {
+            void set_counter_conditional(ctrexp::counterexp_ptr new_conditional) {
                 counter_conditional = new_conditional;
             }
 
@@ -445,7 +445,7 @@ namespace prog {
                 return var_conditional;
             }
 
-            cexp::counterexp_ptr get_counter_conditional() const {
+            ctrexp::counterexp_ptr get_counter_conditional() const {
                 return counter_conditional;
             }
 
@@ -463,12 +463,12 @@ namespace prog {
     class StatementCall : public Statement {
         std::string procedure_name;
         std::vector<vexp::varexpression_ptr> arguments;
-        
+
         public:
             StatementCall() { }
 
             StatementCall(std::string const& new_procedure_name,
-                          std::vector<vexp::varexpression_ptr> const& new_arguments) 
+                          std::vector<vexp::varexpression_ptr> const& new_arguments)
                 : procedure_name(new_procedure_name),
                   arguments(new_arguments) { }
 
@@ -481,7 +481,7 @@ namespace prog {
             }
 
             void append_argument(vexp::varexpression_ptr argument) {
-                if (argument) 
+                if (argument)
                     arguments.push_back(argument);
             }
 
@@ -527,7 +527,7 @@ namespace prog {
             void set_counter(std::string const& new_counter) {
                 counter = new_counter;
             }
-            
+
             void set_increment(int new_increment) {
                 increment = new_increment;
             }
@@ -594,7 +594,7 @@ namespace prog {
                 : branches(new_branches) { }
 
             void add_branch(statement_ptr new_branch) {
-                if (new_branch) 
+                if (new_branch)
                     branches.push_back(new_branch);
             }
 
@@ -615,16 +615,16 @@ namespace prog {
 
     class StatementAssert : public Statement {
         vexp::varexpression_ptr var_conditional;
-        cexp::counterexp_ptr    counter_conditional;
+        ctrexp::counterexp_ptr    counter_conditional;
 
         public:
             StatementAssert() { }
 
-            StatementAssert(vexp::varexpression_ptr vc, cexp::counterexp_ptr cc)
+            StatementAssert(vexp::varexpression_ptr vc, ctrexp::counterexp_ptr cc)
                 : var_conditional(vc),
                   counter_conditional(cc) { }
 
-            void set_counter_conditional(cexp::counterexp_ptr cc) {
+            void set_counter_conditional(ctrexp::counterexp_ptr cc) {
                 counter_conditional = cc;
             }
 
@@ -636,7 +636,7 @@ namespace prog {
                 return var_conditional;
             }
 
-            cexp::counterexp_ptr get_counter_conditional() const {
+            ctrexp::counterexp_ptr get_counter_conditional() const {
                 return counter_conditional;
             }
 

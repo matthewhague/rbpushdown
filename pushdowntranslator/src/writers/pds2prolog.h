@@ -33,37 +33,37 @@ namespace pdswr {
             }
 
         private:
-            void write_pds(pds::pds_ptr pds, 
-                           std::string const& pds_name, 
+            void write_pds(pds::pds_ptr pds,
+                           std::string const& pds_name,
                            std::ostream& output);
             void write_rule(pds::rule_const_ptr r, std::ostream& output);
-            void write_rule_guard(cexp::counterexp_ptr cc, std::ostream& output);
-            void write_globals(pds::multipds_ptr mpds, 
+            void write_rule_guard(ctrexp::counterexp_ptr cc, std::ostream& output);
+            void write_globals(pds::multipds_ptr mpds,
                                std::ostream& output);
 
-            std::string pco_name(std::string const& pds_name) const { 
-                return "PCo_" + pds_name; 
+            std::string pco_name(std::string const& pds_name) const {
+                return "PCo_" + pds_name;
             }
-            std::string states_name(std::string const& pds_name) const { 
-                return "States_" + pds_name; 
+            std::string states_name(std::string const& pds_name) const {
+                return "States_" + pds_name;
             }
-            std::string stack_sym_name(std::string const& pds_name) const { 
-                return "StackSym_" + pds_name; 
+            std::string stack_sym_name(std::string const& pds_name) const {
+                return "StackSym_" + pds_name;
             }
-            std::string input_sym_name(std::string const& pds_name) const { 
-                return "InputSym_" + pds_name; 
+            std::string input_sym_name(std::string const& pds_name) const {
+                return "InputSym_" + pds_name;
             }
-            std::string trans_name(std::string const& pds_name) const { 
-                return "Trans_" + pds_name; 
+            std::string trans_name(std::string const& pds_name) const {
+                return "Trans_" + pds_name;
             }
-            std::string q0_name(std::string const& pds_name) const { 
-                return "Q0_" + pds_name; 
+            std::string q0_name(std::string const& pds_name) const {
+                return "Q0_" + pds_name;
             }
-            std::string z0_name(std::string const& pds_name) const { 
-                return "Z0_" + pds_name; 
+            std::string z0_name(std::string const& pds_name) const {
+                return "Z0_" + pds_name;
             }
-            std::string Qacc_name(std::string const& pds_name) const { 
-                return "Qacc_" + pds_name; 
+            std::string Qacc_name(std::string const& pds_name) const {
+                return "Qacc_" + pds_name;
             }
             std::string declaration_name() const {
                 return "synpco_generated";
@@ -81,7 +81,7 @@ namespace pdswr {
 
 
             void write_synpco(pds::multipds_ptr mpds, std::ostream& output);
-            void write_constraint(pres::epresburger_ptr constraint, 
+            void write_constraint(pres::epresburger_ptr constraint,
                                   std::ostream& output);
             void write_call(pds::multipds_ptr mpds, std::ostream& output);
 
@@ -89,7 +89,7 @@ namespace pdswr {
             void write_action_list(Container const& actions,
                                    std::ostream& output) {
                 output << "[";
-            
+
                 auto it = actions.begin();
                 bool hasoutput = false;
                 while (it != actions.end()) {
@@ -104,14 +104,14 @@ namespace pdswr {
                     }
                     it++;
                 }
-            
+
                 output << "]";
             }
 
-            void get_counters(std::set<std::pair<std::string,int>>& counters, 
+            void get_counters(std::set<std::pair<std::string,int>>& counters,
                               pds::multipds_ptr mpds);
 
-            void get_freevariables(std::set<std::string>& counters, 
+            void get_freevariables(std::set<std::string>& counters,
                                    pds::multipds_ptr mpds);
    };
 

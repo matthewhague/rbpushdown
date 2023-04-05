@@ -43,13 +43,13 @@ namespace po = boost::program_options;
 #define SWITCHES             "switches"
 #define REVERSALS            "reversals"
 
-string const CODE_OPTIMISATIONS_TEXT = 
+string const CODE_OPTIMISATIONS_TEXT =
 "the optimisation chain on source code (default is all in the following order: skips.)\n \
 program optimisers are:\n \
 \n \
     skips -- removes skip statements.\n \
     none  -- no optimisation\n";
-string const PDS_OPTIMISATIONS_TEXT = 
+string const PDS_OPTIMISATIONS_TEXT =
 "the optimisation chain on constructed PDS (default is all in the following order: compress,pushpop,silentloop.)  Chain is repeated to a fixed point.\n \
 pds optimisations are:\n \
 \n \
@@ -91,13 +91,13 @@ void set_reversals(po::variables_map const& vm, program_ptr prog) {
                 exit(-1);
             }
         }
-    } 
+    }
 }
 
 
 
 template <class T>
-void fill_opts(po::variables_map const& vm, 
+void fill_opts(po::variables_map const& vm,
                string const& lookup,
                map<string, T> const& optimisers,
                vector<string>& opts) {
@@ -110,15 +110,15 @@ void fill_opts(po::variables_map const& vm,
             if (optimisers.count(opt)) {
                 opts.push_back(opt);
             } else {
-                cerr << "fill_code_opts: Optimiser " 
-                     << opt 
+                cerr << "fill_code_opts: Optimiser "
+                     << opt
                      << " specified on command line does not exist."
                      << endl;
                 exit(-1);
             }
         }
     } else {
-        for (pair<string, T> const& opt : optimisers) {
+        for (const pair<const string, T>& opt : optimisers) {
             opts.push_back(opt.first);
         }
     }
@@ -126,7 +126,7 @@ void fill_opts(po::variables_map const& vm,
 }
 
 
-void apply_code_optimisers(program_ptr prog, 
+void apply_code_optimisers(program_ptr prog,
                            vector<string> const& opts,
                            map<string, codeoptimiser_ptr> const& optimisers) {
     for (string const& opt : opts) {
@@ -140,7 +140,7 @@ void apply_code_optimisers(program_ptr prog,
     }
 }
 
-void apply_pds_optimisers(multipds_ptr mpds, 
+void apply_pds_optimisers(multipds_ptr mpds,
                           vector<string> const& opts,
                           map<string, mpdsoptimiser_ptr> const& optimisers) {
     //cout << "Size in: " << mpds->size() << "\n";
@@ -175,14 +175,14 @@ int main(int argc, char *argv[]) {
         (CODE_OPTIMISATIONS, po::value<string>(), CODE_OPTIMISATIONS_TEXT.c_str())
         (PDS_OPTIMISATIONS, po::value<string>(), PDS_OPTIMISATIONS_TEXT.c_str())
     ;
-    po::positional_options_description positional; 
+    po::positional_options_description positional;
     positional.add(INPUT, 1);
 
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv)
                            .options(named)
                            .positional(positional).run(), vm);
-    po::notify(vm);    
+    po::notify(vm);
 
 
     map<string, codeoptimiser_ptr> codeoptimisers;
@@ -226,7 +226,7 @@ int main(int argc, char *argv[]) {
 
         prog2pds::Prog2PDS p2p;
 
-        multipds_ptr mpds = p2p.translate(program); 
+        multipds_ptr mpds = p2p.translate(program);
 
         fill_opts(vm, PDS_OPTIMISATIONS, mpdsoptimisers, opts);
         apply_pds_optimisers(mpds, opts, mpdsoptimisers);

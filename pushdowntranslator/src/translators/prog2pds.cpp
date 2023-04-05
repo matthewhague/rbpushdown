@@ -17,7 +17,7 @@ using namespace prog2pds;
 using namespace prog;
 using namespace pds;
 
-multipds_ptr Prog2PDS::translate(program_ptr the_prog) { 
+multipds_ptr Prog2PDS::translate(program_ptr the_prog) {
     prog = the_prog;
     mpds = boost::make_shared<MultiPDS>();
 
@@ -132,11 +132,11 @@ void Prog2PDS::add_init_and_fin(bool init_scheduled) {
         string init_control = make_control(*env);
         pds->add_control(init_control);
 
-        cexp::counterexp_ptr null_cc;
+        ctrexp::counterexp_ptr null_cc;
         // init_control sbot -> init_control init_stack sbot
         add_push(init_control, sbot_init, E_ACT, init_control, init_stack, sbot_done, null_cc);
 
-        // null env is init 
+        // null env is init
         if (env->get_hash() == vexp::NULL_HASH) {
             if (init_scheduled)
                 pds->set_init_p(init_control);
@@ -154,11 +154,11 @@ void Prog2PDS::add_init_and_fin(bool init_scheduled) {
             add_rewrite(exit_control, sbot_end, E_ACT, final_control, sbot_end, null_cc);
 
             string exit_by_switch_control = make_control(*global_env, true);
-            add_rewrite(exit_control, 
-                        sbot_done, 
-                        make_done_action(), 
-                        exit_by_switch_control, 
-                        sbot_end, 
+            add_rewrite(exit_control,
+                        sbot_done,
+                        make_done_action(),
+                        exit_by_switch_control,
+                        sbot_end,
                         null_cc);
         }
     });
@@ -180,7 +180,7 @@ void Prog2PDS::build_maps() {
         int continuation_stmt_id;
 
         public:
-            Trawler(Prog2PDS& new_daddy) : daddy(new_daddy) { 
+            Trawler(Prog2PDS& new_daddy) : daddy(new_daddy) {
                 reset_base("default");
                 continuation_stmt_id = prog::NO_STMT;
             }
@@ -234,7 +234,7 @@ void Prog2PDS::build_maps() {
                 daddy.set_statement_env(s, procedure_env);
                 daddy.register_labels(s);
 
-                bool can_switch = (daddy.is_shared(s.get_var_conditional()) || 
+                bool can_switch = (daddy.is_shared(s.get_var_conditional()) ||
                                    daddy.is_shared(s.get_counter_conditional()));
                 daddy.set_statement_can_switch(s, can_switch, false);
 
@@ -263,7 +263,7 @@ void Prog2PDS::build_maps() {
                 daddy.set_statement_env(s, procedure_env);
                 daddy.register_labels(s);
 
-                bool can_switch = (daddy.is_shared(s.get_var_conditional()) || 
+                bool can_switch = (daddy.is_shared(s.get_var_conditional()) ||
                                    daddy.is_shared(s.get_counter_conditional()));
                 daddy.set_statement_can_switch(s, can_switch, false);
 
@@ -283,7 +283,7 @@ void Prog2PDS::build_maps() {
                     exit(-1);
                 }
 
-                // reset continuation for propriety 
+                // reset continuation for propriety
                 set_continuation_stmt_id(cont);
             }
 
@@ -305,15 +305,15 @@ void Prog2PDS::build_maps() {
                 daddy.register_successor(s.get_id(), get_continuation_stmt_id());
                 daddy.set_statement_env(s, procedure_env);
 
-                std::vector<std::pair<std::string, 
+                std::vector<std::pair<std::string,
                                       vexp::varexpression_ptr>> assigns = s.get_assigns();
-               
+
                 bool can_switch_pre = false;
                 bool can_switch_post = false;
                 auto it = assigns.begin();
-                
-                while(!can_switch_pre && 
-                      !can_switch_post && 
+
+                while(!can_switch_pre &&
+                      !can_switch_post &&
                       it != assigns.end()) {
                     string const& var = it->first;
                     vexp::varexpression_ptr exp = it->second;
@@ -402,10 +402,10 @@ void Prog2PDS::build_maps() {
                 next_name();
             }
 
-            std::string& reset_base(std::string const& new_base) { 
-                next = 1; 
-                base = new_base; 
-                set_name(0); 
+            std::string& reset_base(std::string const& new_base) {
+                next = 1;
+                base = new_base;
+                set_name(0);
                 return get_name();
             }
 
@@ -414,11 +414,11 @@ void Prog2PDS::build_maps() {
 
             void next_name() { set_name(next++); }
 
-            void set_name(int i) { 
-                std::ostringstream s; 
-                s << base << "_" << i; 
-                cur_name = s.str(); 
-            } 
+            void set_name(int i) {
+                std::ostringstream s;
+                s << base << "_" << i;
+                cur_name = s.str();
+            }
 
 
     } trawler(*this);
@@ -449,7 +449,7 @@ void Prog2PDS::register_labels(Statement const& s) {
     for (string const& label : s.get_labels()) {
         auto it = m_label_ids.find(label);
         if (it != m_label_ids.end()) {
-            cerr << "Prog2PDS::register_labels found duplicate label " 
+            cerr << "Prog2PDS::register_labels found duplicate label "
                  << label << endl;
             exit(-1);
         }
@@ -510,7 +510,7 @@ void Prog2PDS::do_statements() {
     add_worklist(init_stmt_id, vexp::NULL_HASH);
     do_worklist_reachability();
 }
-    
+
 vexp::environment_ptr Prog2PDS::make_global_environment() {
     vexp::environment_ptr e = boost::make_shared<vexp::Environment>();
     for (string const& v : prog->get_global_vars()) {
@@ -574,13 +574,13 @@ void Prog2PDS::do_block(prog::StatementBlock const& s,
 
 
 
-void Prog2PDS::add_sloppy_rewrite(int stmt_id, 
+void Prog2PDS::add_sloppy_rewrite(int stmt_id,
                                   int env_hash,
                                   string const& act,
-                                  int cont, 
+                                  int cont,
                                   int next_hash,
                                   vexp::environment_ptr env,
-                                  cexp::counterexp_ptr cc,
+                                  ctrexp::counterexp_ptr cc,
                                   std::set<std::pair<std::string,int>>* counter_acts) {
     env->restore_from_hash(env_hash);
     string cur_control = make_control(*env);
@@ -594,15 +594,15 @@ void Prog2PDS::add_sloppy_rewrite(int stmt_id,
         string next_control = make_control(*env);
         string next_stack   = make_stack(cont, *env);
         add_rewrite(cur_control, cur_stack, act, next_control, next_stack, cc, counter_acts);
-        
+
         if (post_switch && !can_pre_switch(cont)) {
             string switch_control = make_control(*env, true);
-            add_rewrite(cur_control, 
-                        cur_stack, 
-                        act, 
-                        switch_control, 
-                        next_stack, 
-                        cc, 
+            add_rewrite(cur_control,
+                        cur_stack,
+                        act,
+                        switch_control,
+                        next_stack,
+                        cc,
                         counter_acts);
         }
 
@@ -617,11 +617,11 @@ void Prog2PDS::add_sloppy_rewrite(int stmt_id,
 
         if (post_switch) {
             string switch_control = make_control(*env, true);
-            add_pop(cur_control, 
-                    cur_stack, 
-                    act, 
-                    switch_control, 
-                    cc, 
+            add_pop(cur_control,
+                    cur_stack,
+                    act,
+                    switch_control,
+                    cc,
                     counter_acts);
         }
 
@@ -636,7 +636,7 @@ void Prog2PDS::do_switch_point_pre(int stmt_id, vexp::environment_ptr env) {
     string cur_stack   = make_stack(stmt_id, *env);
     string switch_control = make_control(*env, true);
 
-    cexp::counterexp_ptr null_cc;
+    ctrexp::counterexp_ptr null_cc;
 
     add_rewrite(cur_control, cur_stack, E_ACT, switch_control, cur_stack, null_cc);
     // Let's let global rules take care of switching back to non-switch
@@ -647,39 +647,39 @@ void Prog2PDS::do_switch_point_pre(int stmt_id, vexp::environment_ptr env) {
 
 void Prog2PDS::do_cond_jump(bool nondet,
                             vexp::varexpression_ptr vc,
-                            cexp::counterexp_ptr cc,
+                            ctrexp::counterexp_ptr cc,
                             int stmt_id,
                             int then_cont,
                             int else_cont,
                             vexp::environment_ptr env) {
     int env_hash = env->get_hash();
-    
+
     // case 1: nondet
     if (nondet) {
-        cexp::counterexp_ptr null_cc;
+        ctrexp::counterexp_ptr null_cc;
         add_sloppy_rewrite(stmt_id, env_hash, E_ACT, then_cont, env_hash, env, null_cc);
         add_sloppy_rewrite(stmt_id, env_hash, E_ACT, else_cont, env_hash, env, null_cc);
     } else {
         // case 2: no counter condition
         if (!cc && !vc) {
-            cerr << "Prog2PDS::do_cond_jump passed null counter and var constraint, but nondet is false." 
+            cerr << "Prog2PDS::do_cond_jump passed null counter and var constraint, but nondet is false."
                  << endl;
             exit(-1);
         } else if (!cc) {
             // no counter constraint, can determine dir now
             bool vc_val = vc ? vc->evaluate(*env) : true;
-            int cont = vc_val ? then_cont : else_cont; 
+            int cont = vc_val ? then_cont : else_cont;
             add_sloppy_rewrite(stmt_id, env_hash, E_ACT, cont, env_hash, env, cc);
         } else {
             bool vc_val = vc ? vc->evaluate(*env) : true;
             // if value's always false, go to else branch
             if (!vc_val) {
-                cexp::counterexp_ptr null_exp;
+                ctrexp::counterexp_ptr null_exp;
                 string next_stack = make_stack(else_cont, *env);
                 add_sloppy_rewrite(stmt_id, env_hash, E_ACT, else_cont, env_hash, env, null_exp);
             } else {
                 // else, depends on counter constraint
-                cexp::counterexp_ptr not_cc = boost::make_shared<cexp::CExpNot>(cc);
+                ctrexp::counterexp_ptr not_cc = boost::make_shared<ctrexp::CExpNot>(cc);
                 add_sloppy_rewrite(stmt_id, env_hash, E_ACT, then_cont, env_hash, env, cc);
                 add_sloppy_rewrite(stmt_id, env_hash, E_ACT, else_cont, env_hash, env, not_cc);
             }
@@ -688,8 +688,8 @@ void Prog2PDS::do_cond_jump(bool nondet,
 }
 
 
-void Prog2PDS::do_if(prog::StatementIf const& s, 
-                     int cont, 
+void Prog2PDS::do_if(prog::StatementIf const& s,
+                     int cont,
                      vexp::environment_ptr env) {
     statement_ptr else_stmt = s.get_else_stmt();
     int else_cont = else_stmt ? else_stmt->get_id() : cont;
@@ -702,7 +702,7 @@ void Prog2PDS::do_if(prog::StatementIf const& s,
                  env);
 }
 
-void Prog2PDS::do_while(prog::StatementWhile const& s, 
+void Prog2PDS::do_while(prog::StatementWhile const& s,
                                int cont,
                                vexp::environment_ptr env) {
     do_cond_jump(s.is_nondet(),
@@ -718,10 +718,10 @@ void Prog2PDS::do_while(prog::StatementWhile const& s,
 
 
 
-void Prog2PDS::do_assign(prog::StatementAssign const& s, 
+void Prog2PDS::do_assign(prog::StatementAssign const& s,
                          int cont,
                          vexp::environment_ptr env) {
-    cexp::counterexp_ptr null_cc;
+    ctrexp::counterexp_ptr null_cc;
     int s_id = s.get_id();
 
     int old_hash = env->get_hash();
@@ -743,7 +743,7 @@ void Prog2PDS::do_assign(prog::StatementAssign const& s,
 }
 
 
-void Prog2PDS::do_call(prog::StatementCall const& s, 
+void Prog2PDS::do_call(prog::StatementCall const& s,
                        int cont,
                        vexp::environment_ptr env) {
     int s_id = s.get_id();
@@ -774,23 +774,23 @@ void Prog2PDS::do_call(prog::StatementCall const& s,
     if (cont != NO_STMT) {
         string ret_stack = make_stack(cont, *env);
 
-        cexp::counterexp_ptr null_cc;
-        add_push(cur_control, 
-                 cur_stack, 
-                 E_ACT, 
-                 cur_control, 
-                 callee_stack, 
-                 ret_stack, 
+        ctrexp::counterexp_ptr null_cc;
+        add_push(cur_control,
+                 cur_stack,
+                 E_ACT,
+                 cur_control,
+                 callee_stack,
+                 ret_stack,
                  null_cc);
 
         if (post_switch && !can_pre_switch(cont)) {
             string switch_control = make_control(*env, true);
-            add_push(cur_control, 
-                     cur_stack, 
-                     E_ACT, 
-                     switch_control, 
-                     callee_stack, 
-                     ret_stack, 
+            add_push(cur_control,
+                     cur_stack,
+                     E_ACT,
+                     switch_control,
+                     callee_stack,
+                     ret_stack,
                      null_cc);
         }
 
@@ -799,16 +799,16 @@ void Prog2PDS::do_call(prog::StatementCall const& s,
         add_fun_call_watcher(s_id, cur_env_hash, cont, init_id, m_env_hash);
         add_worklist(init_id, m_env_hash);
     } else {
-        cexp::counterexp_ptr null_cc;
+        ctrexp::counterexp_ptr null_cc;
         add_rewrite(cur_control, cur_stack, E_ACT, cur_control, callee_stack, null_cc);
 
         if (post_switch) {
             string switch_control = make_control(*env, true);
-            add_rewrite(cur_control, 
-                        cur_stack, 
-                        E_ACT, 
-                        switch_control, 
-                        callee_stack, 
+            add_rewrite(cur_control,
+                        cur_stack,
+                        E_ACT,
+                        switch_control,
+                        callee_stack,
                         null_cc);
         }
 
@@ -819,9 +819,9 @@ void Prog2PDS::do_call(prog::StatementCall const& s,
     }
 }
 
-void Prog2PDS::do_return(prog::StatementReturn const& s, 
+void Prog2PDS::do_return(prog::StatementReturn const& s,
                          vexp::environment_ptr env) {
-    cexp::counterexp_ptr null_cc;
+    ctrexp::counterexp_ptr null_cc;
     int s_id = s.get_id();
     StatementInfo const& info = get_stmt_info(s_id);
 
@@ -846,10 +846,10 @@ void Prog2PDS::do_return(prog::StatementReturn const& s,
 
 
 
-void Prog2PDS::do_counter_adj(prog::StatementCounterAdj const& s, 
+void Prog2PDS::do_counter_adj(prog::StatementCounterAdj const& s,
                               int cont,
                               vexp::environment_ptr env) {
-    cexp::counterexp_ptr null_cc;
+    ctrexp::counterexp_ptr null_cc;
     int s_id = s.get_id();
     set<pair<string,int>> counter_acts;
     counter_acts.insert(make_pair(s.get_counter(), s.get_increment()));
@@ -859,21 +859,21 @@ void Prog2PDS::do_counter_adj(prog::StatementCounterAdj const& s,
 }
 
 
-void Prog2PDS::do_echo(prog::StatementEcho const& s, 
+void Prog2PDS::do_echo(prog::StatementEcho const& s,
                        int cont,
                        vexp::environment_ptr env) {
-    cexp::counterexp_ptr null_cc;
+    ctrexp::counterexp_ptr null_cc;
     int s_id = s.get_id();
     set<pair<string,int>> counter_acts;
 
     int env_hash = env->get_hash();
-    add_sloppy_rewrite(s_id, 
-                       env_hash, 
-                       make_action(s.get_action()), 
-                       cont, 
-                       env_hash, 
-                       env, 
-                       null_cc, 
+    add_sloppy_rewrite(s_id,
+                       env_hash,
+                       make_action(s.get_action()),
+                       cont,
+                       env_hash,
+                       env,
+                       null_cc,
                        &counter_acts);
 }
 
@@ -883,8 +883,8 @@ void Prog2PDS::do_switch(prog::StatementSwitch const& s,
                          vexp::environment_ptr env) {
     int env_hash = env->get_hash();
     int stmt_id  = s.get_id();
-    
-    cexp::counterexp_ptr null_cc;
+
+    ctrexp::counterexp_ptr null_cc;
 
     for (statement_ptr const& sub_s : s.get_branches()) {
         add_sloppy_rewrite(stmt_id, env_hash, E_ACT, sub_s->get_id(), env_hash, env, null_cc);
@@ -899,32 +899,32 @@ void Prog2PDS::do_assert(prog::StatementAssert const& s,
     int env_hash = env->get_hash();
 
     vexp::varexpression_ptr vc = s.get_var_conditional();
-    cexp::counterexp_ptr    cc = s.get_counter_conditional();
-    
+    ctrexp::counterexp_ptr    cc = s.get_counter_conditional();
+
     bool vc_val = vc ? vc->evaluate(*env) : true;
     if (!vc_val) {
         // assert failed, goto err
-        cexp::counterexp_ptr null_cc;
+        ctrexp::counterexp_ptr null_cc;
         add_goto_control(stmt_id, env_hash, env, make_err_action(), make_final(), null_cc);
     } else {
-        if (!cc) { 
+        if (!cc) {
             // no counter constraint, so we're on our way
             add_sloppy_rewrite(stmt_id, env_hash, E_ACT, cont, env_hash, env, cc);
         } else {
             // depends on counter constraint
             add_sloppy_rewrite(stmt_id, env_hash, E_ACT, cont, env_hash, env, cc);
 
-            cexp::counterexp_ptr not_cc = boost::make_shared<cexp::CExpNot>(cc);
+            ctrexp::counterexp_ptr not_cc = boost::make_shared<ctrexp::CExpNot>(cc);
             add_goto_control(stmt_id, env_hash, env, make_err_action(), make_final(), not_cc);
         }
     }
 }
 
 
-void Prog2PDS::do_lock(prog::StatementLock const& s, 
+void Prog2PDS::do_lock(prog::StatementLock const& s,
                        int cont,
                        vexp::environment_ptr env) {
-    cexp::counterexp_ptr null_cc;
+    ctrexp::counterexp_ptr null_cc;
     int s_id = s.get_id();
 
     bool wanted_pre_val = !s.get_lock();
@@ -942,9 +942,9 @@ void Prog2PDS::do_lock(prog::StatementLock const& s,
 }
 
 
-void Prog2PDS::do_goto(prog::StatementGoto const& s, 
+void Prog2PDS::do_goto(prog::StatementGoto const& s,
                        vexp::environment_ptr env) {
-    cexp::counterexp_ptr null_cc;
+    ctrexp::counterexp_ptr null_cc;
     int s_id = s.get_id();
     int cont = get_label_id(s.get_goto_label());
     int hash = env->get_hash();
@@ -960,7 +960,7 @@ void Prog2PDS::add_goto_control(int stmt_id,
                                 vexp::environment_ptr env,
                                 std::string const& action,
                                 std::string const& dest_control,
-                                cexp::counterexp_ptr cc) {
+                                ctrexp::counterexp_ptr cc) {
     int old_hash = env->get_hash();
     env->restore_from_hash(env_hash);
     string cur_control = make_control(*env);
@@ -974,7 +974,7 @@ void Prog2PDS::add_goto_from_stack(std::string const& from_stack,
                                    vexp::environment_ptr env,
                                    int to_stmt_id,
                                    std::string const& action,
-                                   cexp::counterexp_ptr cc) {
+                                   ctrexp::counterexp_ptr cc) {
     string cur_control = make_control(*env);
     string next_stack  = make_stack(to_stmt_id, *env);
     add_rewrite(cur_control, from_stack, action, cur_control, next_stack, cc);
@@ -991,7 +991,7 @@ gls Prog2PDS::get_var_scope(std::string const& v) {
         set<string> const& vars = prog->get_global_vars();
         auto it = vars.begin();
         while (!found && (it != vars.end())) {
-            found = (*it == v); 
+            found = (*it == v);
             ++it;
         }
 
@@ -1001,7 +1001,7 @@ gls Prog2PDS::get_var_scope(std::string const& v) {
             set<string> const& vars = prog->get_shared_vars();
             auto it = vars.begin();
             while (!found && (it != vars.end())) {
-                found = (*it == v); 
+                found = (*it == v);
                 ++it;
             }
 
@@ -1050,7 +1050,7 @@ std::string Prog2PDS::make_control(vexp::Environment const& e,
 
 
 std::string Prog2PDS::make_stack(int stmt_id, vexp::Environment const& e) {
-    std::ostringstream s; 
+    std::ostringstream s;
     s << get_name_from_id(stmt_id) << "_";
 
     e.env_iter([&, this] (string const& var, bool val) {
@@ -1069,14 +1069,14 @@ void Prog2PDS::add_rewrite(std::string const& p,
                            std::string const& act,
                            std::string const& q,
                            std::string const& b,
-                           cexp::counterexp_ptr cc,
+                           ctrexp::counterexp_ptr cc,
                            set<pair<string,int>>* counter_acts) {
     vector<string> w;
     w.push_back(b);
 
     rule_const_ptr r;
-    
-    if (counter_acts) 
+
+    if (counter_acts)
         r = boost::make_shared<Rule>(p, a, act, q, w, cc, *counter_acts);
     else {
         set<pair<string,int>> c_acts;
@@ -1090,13 +1090,13 @@ void Prog2PDS::add_pop(std::string const& p,
                        std::string const& a,
                        std::string const& act,
                        std::string const& q,
-                       cexp::counterexp_ptr cc,
+                       ctrexp::counterexp_ptr cc,
                        set<pair<string,int>>* counter_acts) {
     vector<string> w;
 
     rule_const_ptr r;
 
-    if (counter_acts) 
+    if (counter_acts)
         r = boost::make_shared<Rule>(p, a, act, q, w, cc, *counter_acts);
     else {
         set<pair<string,int>> c_acts;
@@ -1112,7 +1112,7 @@ void Prog2PDS::add_push(std::string const& p,
                         std::string const& q,
                         std::string const& b,
                         std::string const& c,
-                        cexp::counterexp_ptr cc,
+                        ctrexp::counterexp_ptr cc,
                         set<pair<string,int>>* counter_acts) {
     vector<string> w;
     w.push_back(b);
@@ -1120,7 +1120,7 @@ void Prog2PDS::add_push(std::string const& p,
 
     rule_const_ptr r;
 
-    if (counter_acts) 
+    if (counter_acts)
         r = boost::make_shared<Rule>(p, a, act, q, w, cc, *counter_acts);
     else {
         set<pair<string,int>> c_acts;
@@ -1177,7 +1177,7 @@ void Prog2PDS::do_head_reachability(int stmt_id, int env_hash) {
                 si.env->restore_from_hash(env_hash);
 
                 if (si.can_switch_pre) {
-                    daddy->do_switch_point_pre(si.ptr->get_id(), 
+                    daddy->do_switch_point_pre(si.ptr->get_id(),
                                                si.env);
                 }
 
@@ -1188,7 +1188,7 @@ void Prog2PDS::do_head_reachability(int stmt_id, int env_hash) {
                 // cout << "done statement (id " << si.ptr->get_id() << ") " << *si.ptr << endl;
             }
 
-            virtual void visit(StatementBlock& s) { 
+            virtual void visit(StatementBlock& s) {
                 daddy->do_block(s, info->successor, info->env);
             }
 
@@ -1196,27 +1196,27 @@ void Prog2PDS::do_head_reachability(int stmt_id, int env_hash) {
                 daddy->do_assign(s, info->successor, info->env);
             }
 
-            virtual void visit(StatementIf& s) { 
+            virtual void visit(StatementIf& s) {
                 daddy->do_if(s, info->successor, info->env);
             }
 
-            virtual void visit(StatementWhile& s) { 
+            virtual void visit(StatementWhile& s) {
                 daddy->do_while(s, info->successor, info->env);
             }
 
-            virtual void visit(StatementCall& s) { 
-                daddy->do_call(s, info->successor, info->env); 
+            virtual void visit(StatementCall& s) {
+                daddy->do_call(s, info->successor, info->env);
             }
 
             virtual void visit(StatementReturn& s) {
                 daddy->do_return(s, info->env);
             }
 
-            virtual void visit(StatementCounterAdj& s) { 
+            virtual void visit(StatementCounterAdj& s) {
                 daddy->do_counter_adj(s, info->successor, info->env);
             }
 
-            virtual void visit(StatementEcho& s) { 
+            virtual void visit(StatementEcho& s) {
                 daddy->do_echo(s, info->successor, info->env);
             }
 
@@ -1246,9 +1246,9 @@ void Prog2PDS::pass_on_watcher(int stmt_id, int env_hash, int new_ret_hash) {
 }
 
 
-void Prog2PDS::fun_call_watcher(int stmt_id,  
-                                int env_hash, 
-                                int ret_to_stmt_id, 
+void Prog2PDS::fun_call_watcher(int stmt_id,
+                                int env_hash,
+                                int ret_to_stmt_id,
                                 int new_ret_hash) {
     // get return to env
     vexp::environment_ptr ret_stmt_env = getadd_stmt_info(ret_to_stmt_id).env;
@@ -1257,7 +1257,7 @@ void Prog2PDS::fun_call_watcher(int stmt_id,
     ret_stmt_env->restore_from_hash(env_hash);
     ret_stmt_env->set_from(*global_env);
     int ret_hash = ret_stmt_env->get_hash();
-    
+
     // do rest
     if (!head_reached(ret_to_stmt_id, ret_hash)) {
         add_pass_on_watcher(stmt_id, env_hash, ret_to_stmt_id, ret_hash);
@@ -1279,9 +1279,9 @@ void FunCallWatcher::f(int new_ret_env) const {
 
 // because we can context switch and change shared vals at all times, we have to
 // do for all shared envs
-void Prog2PDS::add_pass_on_watcher(int stmt_id, 
-                                   int env_hash, 
-                                   int w_stmt_id, 
+void Prog2PDS::add_pass_on_watcher(int stmt_id,
+                                   int env_hash,
+                                   int w_stmt_id,
                                    int w_env_hash) {
     watcher_ptr f = boost::make_shared<PassOnWatcher>(this,
                                                       stmt_id,
@@ -1314,7 +1314,7 @@ void Prog2PDS::add_fun_call_watcher(int stmt_id,
         w_env->set_from(se);
         getadd_head_info(make_pair(w_stmt_id, w_env->get_hash())).add_watcher(f);
     });
-}                                    
+}
 
 
 // because we can context switch and change shared vals at all times, we have to
@@ -1326,7 +1326,7 @@ void Prog2PDS::add_worklist(int stmt_id, int env_hash) {
         env->set_from(se);
         int new_hash = env->get_hash();
         if (!head_reached(stmt_id, new_hash)) {
-            worklist.insert(make_pair(stmt_id, new_hash));    
+            worklist.insert(make_pair(stmt_id, new_hash));
         }
     });
 }
@@ -1402,7 +1402,7 @@ void Prog2PDS::do_globals_add_phase(vector<int>& env_hashes, int change_idx) {
         for (int i = 0; is_valid && i < n; i++) {
             if (env_hashes[i] == -1) {
                 string const& control = make_final(make_thread_name(i));
-                if (pdss[i]->has_control(control)) 
+                if (pdss[i]->has_control(control))
                     before_controls.push_back(control);
                 else
                     is_valid = false;
@@ -1410,7 +1410,7 @@ void Prog2PDS::do_globals_add_phase(vector<int>& env_hashes, int change_idx) {
                 is_end = false;
                 global_env->restore_from_hash(env_hashes[i]);
                 // true as arg because we only take can_switch controls
-                string const& control = make_control(*global_env, 
+                string const& control = make_control(*global_env,
                                                      make_thread_name(i),
                                                      true);
                 if (pdss[i]->has_control(control))
@@ -1431,7 +1431,7 @@ void Prog2PDS::do_globals_add_phase(vector<int>& env_hashes, int change_idx) {
         if (!is_end && is_valid && env_hashes[change_idx] != -1) {
             // note global env will contain value of shared vars from active thread
             // (change_idx)
-            
+
             // these rules are for when we expect more context switches
             int cur_alive_hash = global_env->get_hash();
 
@@ -1454,9 +1454,9 @@ void Prog2PDS::do_globals_add_phase(vector<int>& env_hashes, int change_idx) {
                             // overwrite all saved vals
                             // (keeping val of all shared vals)
                             global_env->set_from(*wait_env);
-                            string const& control = make_control(*global_env, 
+                            string const& control = make_control(*global_env,
                                                                   make_thread_name(i));
-                            if (pdss[i]->has_control(control)) 
+                            if (pdss[i]->has_control(control))
                                 after_controls.push_back(control);
                             else
                                 is_valid = false;
@@ -1475,7 +1475,7 @@ void Prog2PDS::do_globals_add_phase(vector<int>& env_hashes, int change_idx) {
                                     is_valid = false;
                             } else {
                                 wait_env->restore_from_hash(env_hashes[i]);
-                                string const& control = make_wait_control(*wait_env, 
+                                string const& control = make_wait_control(*wait_env,
                                                                            make_thread_name(i));
                                 if (pdss[i]->has_control(control))
                                     after_controls.push_back(control);
@@ -1485,7 +1485,7 @@ void Prog2PDS::do_globals_add_phase(vector<int>& env_hashes, int change_idx) {
                         }
                     }
                     if (is_valid) {
-                        globalrule_ptr r = boost::make_shared<GlobalRule>(before_controls, 
+                        globalrule_ptr r = boost::make_shared<GlobalRule>(before_controls,
                                                                           after_controls);
                         mpds->add_global_rule(r);
                     }
@@ -1506,9 +1506,9 @@ void Prog2PDS::do_globals_add_phase(vector<int>& env_hashes, int change_idx) {
                             // overwrite all saved vals
                             // (keeping val of all shared vals)
                             global_env->set_from(*wait_env);
-                            string const& control = make_control(*global_env, 
+                            string const& control = make_control(*global_env,
                                                                   make_thread_name(i));
-                            if (pdss[i]->has_control(control)) 
+                            if (pdss[i]->has_control(control))
                                 after_controls.push_back(control);
                             else
                                 is_valid = false;
@@ -1523,7 +1523,7 @@ void Prog2PDS::do_globals_add_phase(vector<int>& env_hashes, int change_idx) {
                         }
                     }
                     if (is_valid) {
-                        globalrule_ptr r = boost::make_shared<GlobalRule>(before_controls, 
+                        globalrule_ptr r = boost::make_shared<GlobalRule>(before_controls,
                                                                           after_controls);
                         mpds->add_global_rule(r);
                     }
@@ -1541,7 +1541,7 @@ void Prog2PDS::do_globals_add_phase(vector<int>& env_hashes, int change_idx) {
                     is_valid = false;
             }
             if (is_valid) {
-                globalrule_ptr r = boost::make_shared<GlobalRule>(before_controls, 
+                globalrule_ptr r = boost::make_shared<GlobalRule>(before_controls,
                                                                   after_controls);
                 mpds->add_global_rule(r);
             }
@@ -1560,7 +1560,7 @@ void Prog2PDS::do_globals_add_phase(vector<int>& env_hashes, int change_idx) {
 void Prog2PDS::add_constraint() {
     class Builder : public pres::EPresVisitor,
                     public pres::EPresValVisitor {
-  
+
         Prog2PDS* daddy;
         multipds_ptr mpds;
         pres::epresburger_ptr ret_ptr;
@@ -1729,8 +1729,8 @@ bool Prog2PDS::is_shared(vexp::varexpression_ptr vc) {
 
 
         public:
-            Trawler(Prog2PDS& new_daddy) 
-                : daddy(new_daddy), 
+            Trawler(Prog2PDS& new_daddy)
+                : daddy(new_daddy),
                   result(false) { }
 
             bool is_shared(vexp::varexpression_ptr vc) {
@@ -1778,7 +1778,7 @@ bool Prog2PDS::is_shared(vexp::varexpression_ptr vc) {
     } trawler(*this);
 
     bool result = false;
-    if (vc) 
+    if (vc)
         result = trawler.is_shared(vc);
     return result;
 }

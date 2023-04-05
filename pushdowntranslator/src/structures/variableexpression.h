@@ -5,6 +5,7 @@
 
 #include <map>
 #include <vector>
+#include <cmath>
 
 #include "boolexpression.h"
 
@@ -78,9 +79,9 @@ namespace vexp {
             }
 
             // calls f(var, val) over cur env
-            template <typename Func> 
+            template <typename Func>
             void env_iter(Func f) const {
-                for (std::pair<std::string const, bool> const& v: masks) {
+                for (const std::pair<const std::string, int>& v: masks) {
                     f(v.first, get_value(v.first));
                 }
             }
@@ -113,7 +114,7 @@ namespace vexp {
         public:
             VExpVar() { }
 
-            VExpVar(std::string const& new_name, bool new_negated = false) 
+            VExpVar(std::string const& new_name, bool new_negated = false)
                 : negated(new_negated),
                   name(new_name) { }
 

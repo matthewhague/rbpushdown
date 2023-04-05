@@ -22,29 +22,29 @@ namespace pds {
 
     class Rule {
         static int next_id;
-        int id; 
+        int id;
         std::string p;
         std::string a;
         std::vector<std::string> actions;
         std::string q;
         std::vector<std::string> w;
-        cexp::counterexp_ptr guard;
+        ctrexp::counterexp_ptr guard;
         std::set<cact> counter_acts;
 
         public:
-            Rule(std::string const& p, 
+            Rule(std::string const& p,
                  std::string const& a,
                  std::string const& action,
-                 std::string const& q, 
+                 std::string const& q,
                  std::vector<std::string> const& w,
-                 cexp::counterexp_ptr const& guard, 
+                 ctrexp::counterexp_ptr const& guard,
                  std::set<cact> const& counter_acts);
-            Rule(std::string const& p, 
+            Rule(std::string const& p,
                  std::string const& a,
                  std::vector<std::string> const& actions,
-                 std::string const& q, 
+                 std::string const& q,
                  std::vector<std::string> const& w,
-                 cexp::counterexp_ptr const& guard, 
+                 ctrexp::counterexp_ptr const& guard,
                  std::set<cact> const& counter_acts);
             ~Rule();
 
@@ -55,7 +55,7 @@ namespace pds {
             std::vector<std::string> const& get_w() const { return w; }
             std::vector<std::string> const& get_actions() const { return actions; }
             std::set<cact> const& get_counter_acts() const { return counter_acts; }
-            cexp::counterexp_ptr get_guard() const { return guard; }
+            ctrexp::counterexp_ptr get_guard() const { return guard; }
 
             bool operator<(Rule const& rhs) const { return id < rhs.get_id(); }
             friend std::ostream& operator<<(std::ostream& output,  Rule const& r);
@@ -64,6 +64,7 @@ namespace pds {
 
     typedef boost::shared_ptr<Rule const> rule_const_ptr;
     bool operator<(rule_const_ptr lhs, rule_const_ptr rhs);
+    std::ostream& operator<<(std::ostream& output,  Rule const& r);
 
     class Pds;
 
@@ -89,7 +90,7 @@ namespace pds {
 
         std::map<head, std::set<rule_const_ptr>> rule_lookup;
         std::map<head, std::set<rule_const_ptr>> rule_rev_lookup;
-       
+
         public:
             Pds();
             Pds(std::set<rule_const_ptr> const& rules);
@@ -120,8 +121,8 @@ namespace pds {
             std::set<std::string> const& get_controls() const { return controls; }
             std::set<std::string> const& get_alphabet() const { return alphabet; }
             std::set<std::string> const& get_counters() const { return counters; }
-            std::set<std::string> const& get_freevariables() const { 
-                return freevariables; 
+            std::set<std::string> const& get_freevariables() const {
+                return freevariables;
             }
             std::set<std::string> const& get_actions() const { return actions; }
             std::string const& get_init_p() { return init_p; }
@@ -149,7 +150,7 @@ namespace pds {
                 return std::make_pair(control, stack);
             }
 
-       
+
             friend std::ostream& operator<<(std::ostream& output, Pds const& pds);
 
             void remove_unreachable();
@@ -167,13 +168,14 @@ namespace pds {
             void del_rule_from_maps(rule_const_ptr r);
             bool has_rule_match(rule_const_ptr r);
             bool rule_match(rule_const_ptr r1, rule_const_ptr r2);
-            void get_reachable_heads(std::string const& init_p, 
-                                     std::string const& init_a, 
+            void get_reachable_heads(std::string const& init_p,
+                                     std::string const& init_a,
                                      std::set<head>& reach_heads);
             void remove_unreachable(std::string const& init_p, std::string const& init_a);
             void rebuild_info();
     };
 
+    std::ostream& operator<<(std::ostream& output, Pds const& pds);
 }
 
 #endif

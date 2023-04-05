@@ -9,7 +9,7 @@
 using namespace std;
 using namespace pds;
 
-void MPDSOptimiser::get_switch_controls(set<string>& switch_controls, 
+void MPDSOptimiser::get_switch_controls(set<string>& switch_controls,
                                         multipds_ptr mpds) {
     for (globalrule_ptr grule : mpds->get_global_rules()) {
         for (string const& control : grule->get_controls_before()) {
@@ -37,7 +37,7 @@ void MPDSOptimiser::get_removable_stacks(set<string>& removable_stacks,
     }
 }
 
-void MPDSOptimiser::get_unremovable_stacks(set<string>& unremovable_stacks, 
+void MPDSOptimiser::get_unremovable_stacks(set<string>& unremovable_stacks,
                                            set<string> const& switch_controls,
                                            pds_ptr pds,
                                            multipds_ptr mpds) {
@@ -66,7 +66,7 @@ void MPDSOptimiser::get_unremovable_stacks(set<string>& unremovable_stacks,
             unremovable_stacks.insert(rule->get_a());
         }
         vector<string> const& w = rule->get_w();
-        if (w.size() > 0 && 
+        if (w.size() > 0 &&
             (!final_is_sink || rule->get_q() != final) &&
             switch_controls.count(rule->get_q())) {
             unremovable_stacks.insert(w[0]);
@@ -123,10 +123,10 @@ rule_const_ptr MPDSOptimiser::combine_rules(rule_const_ptr r1, rule_const_ptr r2
     vector<string> new_w;
     combine_ws(r1->get_w(), r2->get_w(), new_w);
 
-    cexp::counterexp_ptr new_cc = combine_guards(r1->get_guard(),
+    ctrexp::counterexp_ptr new_cc = combine_guards(r1->get_guard(),
                                                  r2->get_guard());
-    set<cact> new_cacts; 
-    combine_counter_acts(r1->get_counter_acts(), 
+    set<cact> new_cacts;
+    combine_counter_acts(r1->get_counter_acts(),
                          r2->get_counter_acts(),
                          new_cacts);
 
@@ -145,10 +145,10 @@ rule_const_ptr MPDSOptimiser::combine_rules(rule_const_ptr r1, rule_const_ptr r2
 }
 
 
-void MPDSOptimiser::combine_ws(vector<string> const& w1, 
+void MPDSOptimiser::combine_ws(vector<string> const& w1,
                                vector<string> const& w2,
                                vector<string>& new_w) {
-    // w1 = aw', 
+    // w1 = aw',
     // new_w = w2 w'
     // because we had pa->qbw', qb->rw2
     for (const string& a : w2) {
@@ -162,20 +162,20 @@ void MPDSOptimiser::combine_ws(vector<string> const& w1,
         }
     }
 }
-                 
 
 
-cexp::counterexp_ptr MPDSOptimiser::combine_guards(cexp::counterexp_ptr cc1,
-                                                   cexp::counterexp_ptr cc2) {
-    cexp::counterexp_ptr new_cc;
 
-    if (cc1 && cc2) 
-        new_cc = boost::make_shared<cexp::CExpAnd>(cc1, cc2);
-    else if (cc1 && !cc2) 
+ctrexp::counterexp_ptr MPDSOptimiser::combine_guards(ctrexp::counterexp_ptr cc1,
+                                                     ctrexp::counterexp_ptr cc2) {
+    ctrexp::counterexp_ptr new_cc;
+
+    if (cc1 && cc2)
+        new_cc = boost::make_shared<ctrexp::CExpAnd>(cc1, cc2);
+    else if (cc1 && !cc2)
         new_cc = cc1;
-    else if (!cc1 && cc2) 
+    else if (!cc1 && cc2)
         new_cc = cc2;
-    else 
+    else
         new_cc = cc1;
 
     return new_cc;
@@ -208,7 +208,7 @@ void MPDSOptimiser::combine_counter_acts(set<cact> const& cacts1,
 }
 
 
-void MPDSOptimiser::combine_actions(vector<string> const& acts1, 
+void MPDSOptimiser::combine_actions(vector<string> const& acts1,
                                     vector<string> const& acts2,
                                     vector<string>& new_acts) {
     for (string const& act : acts1) {
@@ -220,4 +220,4 @@ void MPDSOptimiser::combine_actions(vector<string> const& acts1,
 }
 
 
-                                  
+

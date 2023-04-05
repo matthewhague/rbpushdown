@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <vector>
 #include "boost/shared_ptr.hpp"
 #include "boost/make_shared.hpp"
 
@@ -41,7 +42,7 @@ namespace expr {
         typedef boost::shared_ptr<BoolExpressionOr<Environment, Visitor>>      boolexp_or_ptr;
         typedef boost::shared_ptr<BoolExpressionImplies<Environment, Visitor>> boolexp_implies_ptr;
         typedef boost::shared_ptr<BoolExpressionNot<Environment, Visitor>>     boolexp_not_ptr;
-    }; 
+    };
 
 
     template <class Environment, class Visitor>
@@ -83,7 +84,7 @@ namespace expr {
             }
 
             virtual void to_stream(std::ostream& output) const{
-                output << (value ? "tt" : "ff"); 
+                output << (value ? "tt" : "ff");
             }
 
             virtual typename Ptrs<Environment, Visitor>::boolexpression_ptr make_shared_ptr() {
@@ -162,16 +163,16 @@ namespace expr {
             virtual typename Ptrs<Environment, Visitor>::boolexpression_ptr normal_form(bool negative) {
                 if (!negative) {
                     // !a or b
-                    typename Ptrs<Environment, Visitor>::boolexpression_ptr not_a 
+                    typename Ptrs<Environment, Visitor>::boolexpression_ptr not_a
                         = get_lhs()->normal_form(true);
-                    typename Ptrs<Environment, Visitor>::boolexpression_ptr b 
+                    typename Ptrs<Environment, Visitor>::boolexpression_ptr b
                         = get_rhs()->normal_form(false);
                     return boost::make_shared<BoolExpressionOr<Environment, Visitor>>(not_a, b);
                 } else {
                     // a and !b
-                    typename Ptrs<Environment, Visitor>::boolexpression_ptr a 
+                    typename Ptrs<Environment, Visitor>::boolexpression_ptr a
                         = get_lhs()->normal_form(false);
-                    typename Ptrs<Environment, Visitor>::boolexpression_ptr not_b 
+                    typename Ptrs<Environment, Visitor>::boolexpression_ptr not_b
                         = get_rhs()->normal_form(true);
                     return boost::make_shared<BoolExpressionAnd<Environment, Visitor>>(a, not_b);
                 }
@@ -197,7 +198,7 @@ namespace expr {
             }
 
             void add_operand(typename Ptrs<Environment, Visitor>::boolexpression_ptr new_operand) {
-                if (new_operand) 
+                if (new_operand)
                     operands.push_back(new_operand);
             }
 
@@ -210,7 +211,7 @@ namespace expr {
             }
 
             virtual bool evaluate(Environment const& env) const = 0;
-            
+
             virtual void to_stream(std::ostream& output) const{
                 output << "(";
                 auto it = operands.begin();
@@ -234,13 +235,13 @@ namespace expr {
     };
 
     template <class Environment, class Visitor>
-    class BoolExpressionAnd : public BoolExpressionBinOp<Environment, Visitor> { 
+    class BoolExpressionAnd : public BoolExpressionBinOp<Environment, Visitor> {
         public:
             BoolExpressionAnd<Environment, Visitor>() { }
 
             BoolExpressionAnd<Environment, Visitor>(
                 typename Ptrs<Environment, Visitor>::boolexpression_ptr lhs,
-                typename Ptrs<Environment, Visitor>::boolexpression_ptr rhs) 
+                typename Ptrs<Environment, Visitor>::boolexpression_ptr rhs)
                 : BoolExpressionBinOp<Environment, Visitor>(lhs, rhs) { }
 
 
@@ -269,7 +270,7 @@ namespace expr {
                         boost::make_shared<BoolExpressionAnd<Environment, Visitor>>();
                     for (typename Ptrs<Environment, Visitor>::boolexpression_ptr sub_f :
                              this->get_operands()) {
-                        typename Ptrs<Environment, Visitor>::boolexpression_ptr op 
+                        typename Ptrs<Environment, Visitor>::boolexpression_ptr op
                             = sub_f->normal_form(false);
                         f->add_operand(op);
                     }
@@ -279,7 +280,7 @@ namespace expr {
                         boost::make_shared<BoolExpressionOr<Environment, Visitor>>();
                     for (typename Ptrs<Environment, Visitor>::boolexpression_ptr sub_f :
                              this->get_operands()) {
-                        typename Ptrs<Environment, Visitor>::boolexpression_ptr op 
+                        typename Ptrs<Environment, Visitor>::boolexpression_ptr op
                             = sub_f->normal_form(true);
                         f->add_operand(op);
                     }
@@ -300,7 +301,7 @@ namespace expr {
 
             BoolExpressionOr<Environment, Visitor>(
                 typename Ptrs<Environment, Visitor>::boolexpression_ptr lhs,
-                typename Ptrs<Environment, Visitor>::boolexpression_ptr rhs) 
+                typename Ptrs<Environment, Visitor>::boolexpression_ptr rhs)
                 : BoolExpressionBinOp<Environment, Visitor>(lhs, rhs) { }
 
             virtual bool evaluate(Environment const& env) const {
@@ -328,7 +329,7 @@ namespace expr {
                         boost::make_shared<BoolExpressionOr<Environment, Visitor>>();
                     for (typename Ptrs<Environment, Visitor>::boolexpression_ptr sub_f :
                              this->get_operands()) {
-                        typename Ptrs<Environment, Visitor>::boolexpression_ptr op 
+                        typename Ptrs<Environment, Visitor>::boolexpression_ptr op
                             = sub_f->normal_form(false);
                         f->add_operand(op);
                     }
@@ -338,7 +339,7 @@ namespace expr {
                         boost::make_shared<BoolExpressionAnd<Environment, Visitor>>();
                     for (typename Ptrs<Environment, Visitor>::boolexpression_ptr sub_f :
                              this->get_operands()) {
-                        typename Ptrs<Environment, Visitor>::boolexpression_ptr op 
+                        typename Ptrs<Environment, Visitor>::boolexpression_ptr op
                             = sub_f->normal_form(true);
                         f->add_operand(op);
                     }
@@ -357,7 +358,7 @@ namespace expr {
 
         public:
             BoolExpressionNot<Environment, Visitor>(
-                typename Ptrs<Environment, Visitor>::boolexpression_ptr new_expr) 
+                typename Ptrs<Environment, Visitor>::boolexpression_ptr new_expr)
                 : expr(new_expr) { }
 
 

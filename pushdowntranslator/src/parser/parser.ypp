@@ -34,21 +34,21 @@
 %}
 
 %union {
-	int                      token;
-    std::string*             string;
-    int                      integer;
-    prog::Program*           program;
-    prog::Procedure*         procedure;
-    prog::Statement*         stmt;
-    prog::StatementBlock*    stmt_block;
-    prog::StatementIf*       stmt_if;
-    prog::StatementSwitch*   stmt_switch;
-    prog::StatementCall*     stmt_call;
-    prog::StatementAssign*   stmt_assign;
-    vexp::VarExpression*     var_exp;
-    cexp::CounterExpression* count_exp;
-    pres::EPresburger*       epres_exp;
-    pres::EPresVal*          epres_val;
+	int                        token;
+    std::string*               string;
+    int                        integer;
+    prog::Program*             program;
+    prog::Procedure*           procedure;
+    prog::Statement*           stmt;
+    prog::StatementBlock*      stmt_block;
+    prog::StatementIf*         stmt_if;
+    prog::StatementSwitch*     stmt_switch;
+    prog::StatementCall*       stmt_call;
+    prog::StatementAssign*     stmt_assign;
+    vexp::VarExpression*       var_exp;
+    ctrexp::CounterExpression* count_exp;
+    pres::EPresburger*         epres_exp;
+    pres::EPresVal*            epres_val;
 }
 
 %token <token>   PDSPROCEDURE LPAREN RPAREN BOOL COMMA RETURN 
@@ -257,7 +257,7 @@ stmt_if_then_start : IF var_exp_poss count_exp_poss THEN stmt {
                          vexp::varexpression_ptr cv;
                          if $2
                             cv = $2->make_shared_ptr();
-                         cexp::counterexp_ptr cc;
+                         ctrexp::counterexp_ptr cc;
                          if $3
                             cc = $3->make_shared_ptr();
                          prog::statement_ptr p = $5->make_shared_ptr();
@@ -265,7 +265,7 @@ stmt_if_then_start : IF var_exp_poss count_exp_poss THEN stmt {
                    }
                    | IF NONDET THEN stmt {
                          vexp::varexpression_ptr cv;
-                         cexp::counterexp_ptr cc;
+                         ctrexp::counterexp_ptr cc;
                          prog::statement_ptr p = $4->make_shared_ptr();
                          $$ = new prog::StatementIf(cv, cc, p);
                    };
@@ -275,7 +275,7 @@ stmt_while : WHILE var_exp_poss count_exp_poss DO stmt {
                  vexp::varexpression_ptr cv;
                  if $2 
                     cv = $2->make_shared_ptr();
-                 cexp::counterexp_ptr cc;
+                 ctrexp::counterexp_ptr cc;
                  if $3
                     cc = $3->make_shared_ptr();
                  prog::statement_ptr p = $5->make_shared_ptr();
@@ -283,7 +283,7 @@ stmt_while : WHILE var_exp_poss count_exp_poss DO stmt {
              }
              | WHILE NONDET DO stmt {
                  vexp::varexpression_ptr cv;
-                 cexp::counterexp_ptr cc;
+                 ctrexp::counterexp_ptr cc;
                  prog::statement_ptr p = $4->make_shared_ptr();
                  $$ = new prog::StatementWhile(cv, cc, p);
              };
@@ -348,7 +348,7 @@ stmt_assert : ASSERT var_exp_poss count_exp_poss SEMI_COLON {
                  vexp::varexpression_ptr cv;
                  if $2 
                     cv = $2->make_shared_ptr();
-                 cexp::counterexp_ptr cc;
+                 ctrexp::counterexp_ptr cc;
                  if $3
                     cc = $3->make_shared_ptr();
                  $$ = new prog::StatementAssert(cv, cc);
@@ -435,91 +435,91 @@ count_exp : count_exp_const   { $$ = $1; }
           | count_exp_implies { $$ = $1; };
   
 
-count_exp_const : INTEGER { $$ = new cexp::CExpConst($1 != 0); }
-                | BTRUE   { $$ = new cexp::CExpConst(1); }
-                | BFALSE  { $$ = new cexp::CExpConst(0); };
+count_exp_const : INTEGER { $$ = new ctrexp::CExpConst($1 != 0); }
+                | BTRUE   { $$ = new ctrexp::CExpConst(1); }
+                | BFALSE  { $$ = new ctrexp::CExpConst(0); };
 
 
 count_exp_comp : IDENTIFIER CEQ INTEGER { 
-                     $$ = new cexp::CExpConstCompare(*$1, cexp::EQ, $3);
+                     $$ = new ctrexp::CExpConstCompare(*$1, ctrexp::EQ, $3);
                      delete $1;
                }
                | IDENTIFIER CNEQ INTEGER {
-                     $$ = new cexp::CExpConstCompare(*$1, cexp::NEQ, $3);
+                     $$ = new ctrexp::CExpConstCompare(*$1, ctrexp::NEQ, $3);
                      delete $1;
                }
                | IDENTIFIER CLT INTEGER {
-                     $$ = new cexp::CExpConstCompare(*$1, cexp::LT, $3);
+                     $$ = new ctrexp::CExpConstCompare(*$1, ctrexp::LT, $3);
                      delete $1;
                }
                | IDENTIFIER CGT INTEGER {
-                     $$ = new cexp::CExpConstCompare(*$1, cexp::GT, $3);
+                     $$ = new ctrexp::CExpConstCompare(*$1, ctrexp::GT, $3);
                      delete $1;
                }
                | IDENTIFIER CLTE INTEGER {
-                     $$ = new cexp::CExpConstCompare(*$1, cexp::LTE, $3);
+                     $$ = new ctrexp::CExpConstCompare(*$1, ctrexp::LTE, $3);
                      delete $1;
                }
                | IDENTIFIER CGTE INTEGER {
-                     $$ = new cexp::CExpConstCompare(*$1, cexp::GTE, $3);
+                     $$ = new ctrexp::CExpConstCompare(*$1, ctrexp::GTE, $3);
                      delete $1;
                };
 
 count_exp_fv_comp : IDENTIFIER CEQ IDENTIFIER { 
-                        $$ = new cexp::CExpFVCompare(*$1, cexp::EQ, *$3);
+                        $$ = new ctrexp::CExpFVCompare(*$1, ctrexp::EQ, *$3);
                         delete $1;
                         delete $3;
                   }
                   | IDENTIFIER CNEQ IDENTIFIER {
-                        $$ = new cexp::CExpFVCompare(*$1, cexp::NEQ, *$3);
+                        $$ = new ctrexp::CExpFVCompare(*$1, ctrexp::NEQ, *$3);
                         delete $1;
                         delete $3;
                   }
                   | IDENTIFIER CLT IDENTIFIER {
-                        $$ = new cexp::CExpFVCompare(*$1, cexp::LT, *$3);
+                        $$ = new ctrexp::CExpFVCompare(*$1, ctrexp::LT, *$3);
                         delete $1;
                         delete $3;
                   }
                   | IDENTIFIER CGT IDENTIFIER {
-                        $$ = new cexp::CExpFVCompare(*$1, cexp::GT, *$3);
+                        $$ = new ctrexp::CExpFVCompare(*$1, ctrexp::GT, *$3);
                         delete $1;
                         delete $3;
                   }
                   | IDENTIFIER CLTE IDENTIFIER {
-                        $$ = new cexp::CExpFVCompare(*$1, cexp::LTE, *$3);
+                        $$ = new ctrexp::CExpFVCompare(*$1, ctrexp::LTE, *$3);
                         delete $1;
                         delete $3;
                   }
                   | IDENTIFIER CGTE IDENTIFIER {
-                        $$ = new cexp::CExpFVCompare(*$1, cexp::GTE, *$3);
+                        $$ = new ctrexp::CExpFVCompare(*$1, ctrexp::GTE, *$3);
                         delete $1;
                         delete $3;
                   };
 
 
 count_exp_not : NOT count_exp {
-                    cexp::counterexp_ptr p = $2->make_shared_ptr();
-                    $$ = new cexp::CExpNot(p);
+                    ctrexp::counterexp_ptr p = $2->make_shared_ptr();
+                    $$ = new ctrexp::CExpNot(p);
               };
 
 count_exp_and : count_exp AND count_exp {
-                    cexp::counterexp_ptr p1 = $1->make_shared_ptr();
-                    cexp::counterexp_ptr p2 = $3->make_shared_ptr();
-                    $$ = new cexp::CExpAnd(p1, p2);
+                    ctrexp::counterexp_ptr p1 = $1->make_shared_ptr();
+                    ctrexp::counterexp_ptr p2 = $3->make_shared_ptr();
+                    $$ = new ctrexp::CExpAnd(p1, p2);
               };
 
 count_exp_or : count_exp OR count_exp {
-                   cexp::counterexp_ptr p1 = $1->make_shared_ptr();
-                   cexp::counterexp_ptr p2 = $3->make_shared_ptr();
-                   $$ = new cexp::CExpOr(p1, p2);
+                   ctrexp::counterexp_ptr p1 = $1->make_shared_ptr();
+                   ctrexp::counterexp_ptr p2 = $3->make_shared_ptr();
+                   $$ = new ctrexp::CExpOr(p1, p2);
              };
 
 count_exp_brac : LPAREN count_exp RPAREN { $$ = $2; };
 
 count_exp_implies : count_exp IMPLIES count_exp {
-                        cexp::counterexp_ptr p1 = $1->make_shared_ptr();
-                        cexp::counterexp_ptr p2 = $3->make_shared_ptr();
-                        $$ = new cexp::CExpImplies(p1, p2);
+                        ctrexp::counterexp_ptr p1 = $1->make_shared_ptr();
+                        ctrexp::counterexp_ptr p2 = $3->make_shared_ptr();
+                        $$ = new ctrexp::CExpImplies(p1, p2);
                   };
 
 

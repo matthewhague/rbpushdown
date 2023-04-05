@@ -5,7 +5,7 @@
 
 #include "boolexpression.h"
 
-namespace cexp {
+namespace ctrexp {
 
     class Environment;
     class CExpVisitor;
@@ -59,7 +59,7 @@ namespace cexp {
             CExpCompare() { }
 
             CExpCompare(std::string const& new_variable_name,
-                        CompOp new_op) 
+                        CompOp new_op)
                 : variable_name(new_variable_name),
                   op(new_op) {}
             ~CExpCompare() {}
@@ -98,7 +98,7 @@ namespace cexp {
 
             CExpConstCompare(std::string const& new_variable_name,
                              CompOp new_op,
-                             int new_value) 
+                             int new_value)
                 : CExpCompare(new_variable_name, new_op),
                   value(new_value) {}
             ~CExpConstCompare() {}
@@ -133,7 +133,7 @@ namespace cexp {
 
             CExpFVCompare(std::string const& new_variable_name,
                           CompOp new_op,
-                          std::string const& new_freevariable_name) 
+                          std::string const& new_freevariable_name)
                 : CExpCompare(new_variable_name, new_op),
                   freevariable_name(new_freevariable_name) {}
             ~CExpFVCompare() {}

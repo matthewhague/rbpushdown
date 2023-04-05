@@ -19,12 +19,12 @@ using namespace pds;
 
 int Rule::next_id = 0;
 
-Rule::Rule(string const& new_p, 
+Rule::Rule(string const& new_p,
            string const& new_a,
            vector<string> const& new_actions,
-           string const& new_q, 
+           string const& new_q,
            vector<string> const& new_w,
-           cexp::counterexp_ptr const& new_guard,
+           ctrexp::counterexp_ptr const& new_guard,
            set<cact> const& new_counter_acts)
     : p(new_p),
       a(new_a),
@@ -37,12 +37,12 @@ Rule::Rule(string const& new_p,
 }
 
 
-Rule::Rule(string const& new_p, 
+Rule::Rule(string const& new_p,
            string const& new_a,
            string const& new_action,
-           string const& new_q, 
+           string const& new_q,
            vector<string> const& new_w,
-           cexp::counterexp_ptr const& new_guard,
+           ctrexp::counterexp_ptr const& new_guard,
            set<cact> const& new_counter_acts)
     : p(new_p),
       a(new_a),
@@ -69,7 +69,7 @@ bool pds::operator<(rule_const_ptr lhs, rule_const_ptr rhs) {
             return (acmp < 0);
         else {
             int pcmp = lhs->get_p().compare(rhs->get_p());
-            if (pcmp != 0) 
+            if (pcmp != 0)
                 return (pcmp < 0);
             else
                 return lhs->get_id() < rhs->get_id();
@@ -80,14 +80,14 @@ bool pds::operator<(rule_const_ptr lhs, rule_const_ptr rhs) {
 
 
 ostream& pds::operator<<(ostream& output, Rule const& r) {
-    output << r.p << " " << r.a 
-           << " -- "; 
+    output << r.p << " " << r.a
+           << " -- ";
     tools::write_list(r.actions, output, [&](string const& action) {
         output << action;
     });
     output << " --> " << r.q << " ";
     for (auto it = r.w.begin(); it != r.w.end(); ++it) {
-        output << *it << " ";        
+        output << *it << " ";
     }
 
     if (r.guard) {
@@ -181,7 +181,7 @@ bool Pds::has_rule_match(rule_const_ptr r) {
     bool res = 0;
     auto it = rule_lookup.find(make_head(r->get_p(), r->get_a()));
     if (it != rule_lookup.end()) {
-        auto r_it = it->second.begin(); 
+        auto r_it = it->second.begin();
         while (!res && (r_it != it->second.end())) {
             res = rule_match(r, *r_it++);
         }
@@ -261,7 +261,7 @@ ostream& pds::operator<<(ostream& output, Pds const& pds) {
         output << *it << " ";
     }
     output << "\n\n";
- 
+
     output << "Alphabet: ";
     for (auto it = pds.alphabet.begin(); it != pds.alphabet.end(); ++it) {
         output << *it << " ";
@@ -273,7 +273,7 @@ ostream& pds::operator<<(ostream& output, Pds const& pds) {
         output << *it << " ";
     }
     output << "\n\n";
-        
+
     output << "Counters: ";
     for (auto it = pds.counters.begin(); it != pds.counters.end(); ++it) {
         output << *it << " ";
@@ -325,8 +325,8 @@ void Pds::remove_unreachable(string const& init_p, string const& init_a) {
 }
 
 
-void Pds::get_reachable_heads(string const& init_p, 
-                              string const& init_a, 
+void Pds::get_reachable_heads(string const& init_p,
+                              string const& init_a,
                               set<pair<string, string>>& reach_heads) {
     set<pair<string, string>> new_heads;
     auto init_head = make_head(init_p, init_a);
@@ -371,7 +371,7 @@ std::set<rule_const_ptr> const& Pds::get_rules(string const& p,
     auto it = rule_lookup.find(make_head(p, a));
     if (it != rule_lookup.end()) {
         return it->second;
-    } 
+    }
 
     return empty_rule_set;
 }
@@ -381,7 +381,7 @@ std::set<rule_const_ptr> const& Pds::get_rev_rules(string const& p,
     auto it = rule_rev_lookup.find(make_head(p, a));
     if (it != rule_rev_lookup.end()) {
         return it->second;
-    } 
+    }
 
     return empty_rule_set;
 }
@@ -390,8 +390,8 @@ std::set<rule_const_ptr> const& Pds::get_rev_rules(string const& p,
 int Pds::get_reversals(std::string const& counter) const {
     auto it = counter_revs.find(counter);
     if (it == counter_revs.end()) {
-        cerr << "Program::get_reversals has no reversals setting for counter " 
-             << counter 
+        cerr << "Program::get_reversals has no reversals setting for counter "
+             << counter
              << endl;
         exit(-1);
     }

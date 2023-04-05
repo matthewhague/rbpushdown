@@ -15,14 +15,14 @@ using boost::adaptors::sliced;
 
 using namespace std;
 using namespace pds;
-using namespace cexp;
+using namespace ctrexp;
 
 using namespace pdswr;
 
 
 void PDS2Prolog::to_stream(multipds_ptr mpds, ostream& output) {
     int n = 0;
-    
+
     output << declaration() << "\n";
     write_synpco(mpds, output);
     for (pds_ptr p : mpds->get_pdss()) {
@@ -45,20 +45,20 @@ void PDS2Prolog::write_synpco(multipds_ptr mpds, ostream& output) {
         if (i < n - 1)
             output << ",";
     }
-    output << "]," << GLOBAL_TRANS 
-           << "," << GLOBAL_INPUT 
-           << "," << GLOBAL_COUNTERS 
+    output << "]," << GLOBAL_TRANS
+           << "," << GLOBAL_INPUT
+           << "," << GLOBAL_COUNTERS
            << "),\n";
 }
 
 
 
-void PDS2Prolog::write_pds(pds_ptr pds, 
-                           std::string const& pds_name, 
+void PDS2Prolog::write_pds(pds_ptr pds,
+                           std::string const& pds_name,
                            ostream& output) {
     // PCo = pco(States,StackSym,InputSym,Trans,(Q0,sym(Z0)),Qacc),
-    output << INDENT 
-           << pco_name(pds_name) 
+    output << INDENT
+           << pco_name(pds_name)
            << " = pco("
            << states_name(pds_name) << ","
            << stack_sym_name(pds_name) << ","
@@ -69,9 +69,9 @@ void PDS2Prolog::write_pds(pds_ptr pds,
 
     // States = [...],
     output << INDENT << states_name(pds_name) << " = [";
-    tools::write_list_sep(pds->get_controls(), 
+    tools::write_list_sep(pds->get_controls(),
                           ",\n" + INDENT + INDENT,
-                          output, 
+                          output,
                           [&] (string const& s) {
         write_var(s, output);
     });
@@ -81,7 +81,7 @@ void PDS2Prolog::write_pds(pds_ptr pds,
     output << INDENT << stack_sym_name(pds_name) << " = [";
     tools::write_list_sep(pds->get_alphabet(),
                           ",\n" + INDENT + INDENT,
-                          output, 
+                          output,
                           [&] (string const& s) {
         output << "sym(";
         write_var(s, output);
@@ -95,30 +95,30 @@ void PDS2Prolog::write_pds(pds_ptr pds,
     output << ",\n";
 
     // Q01 = q0r0_1,
-    output << INDENT 
-           << q0_name(pds_name) 
+    output << INDENT
+           << q0_name(pds_name)
            << " = ";
     write_var(pds->get_init_p(), output);
     output << ",\n";
     // Z_01 = init_1,
-    output << INDENT 
-           << z0_name(pds_name) 
+    output << INDENT
+           << z0_name(pds_name)
            << " = ";
-    write_var(pds->get_init_a(), output); 
+    write_var(pds->get_init_a(), output);
     output << ",\n";
     // Qacc1 = err_1,
-    output << INDENT 
-           << Qacc_name(pds_name) 
+    output << INDENT
+           << Qacc_name(pds_name)
            << " = ";
-    write_var(pds->get_fin_p(), output); 
+    write_var(pds->get_fin_p(), output);
     output << ",\n";
 
 
     // Trans1 = [...]
     output << INDENT << trans_name(pds_name) << " = [";
-    tools::write_list_sep(pds->get_rules(), 
-                          ",\n" + INDENT + INDENT, 
-                          output, 
+    tools::write_list_sep(pds->get_rules(),
+                          ",\n" + INDENT + INDENT,
+                          output,
                           [&, this] (rule_const_ptr r) {
         write_rule(r, output);
     });
@@ -156,15 +156,15 @@ void PDS2Prolog::write_rule(rule_const_ptr r, ostream& output) {
             output << ",";
     }
     output << "],[";
-    tools::write_list(r->get_counter_acts(), 
-               output, 
+    tools::write_list(r->get_counter_acts(),
+               output,
                [&] (pair<string, int> const& act) {
         output << "(";
         write_var(act.first, output);
         output << ", " << act.second << ")";
     });
     output << "])";
-    
+
     output << ")";
 }
 
@@ -178,53 +178,53 @@ void PDS2Prolog::write_rule_guard(counterexp_ptr cc, ostream& output) {
                 output = &the_output;
                 cc->accept(*this);
             }
-            
-            virtual void visit(CExpConst& b) { 
+
+            virtual void visit(CExpConst& b) {
                 if (b.get_value())
                     *output << "true";
-                else 
+                else
                     *output << "false";
             }
 
-            virtual void visit(CExpAnd& b) { 
-                *output << "and(["; 
-                tools::write_list(b.get_operands(), 
-                                  *output, 
+            virtual void visit(CExpAnd& b) {
+                *output << "and([";
+                tools::write_list(b.get_operands(),
+                                  *output,
                                   [this] (counterexp_ptr c) {
                     c->accept(*this);
                 });
                 *output << "])";
             }
 
-            virtual void visit(CExpOr& b) { 
-                *output << "or(["; 
-                tools::write_list(b.get_operands(), 
-                                  *output, 
+            virtual void visit(CExpOr& b) {
+                *output << "or([";
+                tools::write_list(b.get_operands(),
+                                  *output,
                                   [this] (counterexp_ptr c) {
                     c->accept(*this);
                 });
                 *output << "])";
             }
 
-            virtual void visit(CExpImplies& b) { 
+            virtual void visit(CExpImplies& b) {
                 *output << "imply([";
                 b.get_lhs()->accept(*this);
                 *output << "],[";
                 b.get_rhs()->accept(*this);
                 *output << "])";
             }
-            
-            virtual void visit(CExpNot& b) { 
+
+            virtual void visit(CExpNot& b) {
                 cerr << "PDS2Prolog::write_rule_guard: not operation not supported." << endl;
                 exit(-1);
             }
 
-            virtual void visit(CExpConstCompare& b) { 
+            virtual void visit(CExpConstCompare& b) {
                 if (b.get_op() == NEQ) {
                     *output << "or(lt([";
                     PDS2Prolog::write_var(b.get_variable_name(), *output);
-                    *output << "],[" 
-                            << b.get_value() 
+                    *output << "],["
+                            << b.get_value()
                             << "]),gt([";
                     PDS2Prolog::write_var(b.get_variable_name(), *output);
                     *output << "],["
@@ -245,7 +245,7 @@ void PDS2Prolog::write_rule_guard(counterexp_ptr cc, ostream& output) {
                 }
             }
 
-            virtual void visit(CExpFVCompare& b) { 
+            virtual void visit(CExpFVCompare& b) {
                 if (b.get_op() == NEQ) {
                     *output << "or(lt([";
                     PDS2Prolog::write_var(b.get_variable_name(), *output);
@@ -274,12 +274,12 @@ void PDS2Prolog::write_rule_guard(counterexp_ptr cc, ostream& output) {
             }
     } expwriter;
     if (cc) {
-        cexp::counterexp_ptr cc_norm = cc->normal_form(false);
+        ctrexp::counterexp_ptr cc_norm = cc->normal_form(false);
         expwriter.to_stream(cc_norm, output);
     } else output << "true";
 }
 
-void PDS2Prolog::write_globals(pds::multipds_ptr mpds, 
+void PDS2Prolog::write_globals(pds::multipds_ptr mpds,
                                std::ostream& output) {
     output << INDENT << GLOBAL_INPUT << " = [],\n";
 
@@ -305,19 +305,19 @@ void PDS2Prolog::write_globals(pds::multipds_ptr mpds,
 
 
     output << INDENT << GLOBAL_TRANS << " = [";
-    tools::write_list_sep(mpds->get_global_rules(), 
+    tools::write_list_sep(mpds->get_global_rules(),
                           ",\n" + INDENT + INDENT,
-                          output, 
+                          output,
                           [&] (globalrule_ptr r) {
         output << "tran(from(states(";
-        tools::write_list(r->get_controls_before(), 
-                          output, 
+        tools::write_list(r->get_controls_before(),
+                          output,
                           [&] (string const& s) {
             write_var(s, output);
         });
         output << "),true),[],to(states(";
-        tools::write_list(r->get_controls_after(), 
-                          output, 
+        tools::write_list(r->get_controls_after(),
+                          output,
                           [&] (string const& s) {
             write_var(s, output);
         });
@@ -330,7 +330,7 @@ void PDS2Prolog::write_globals(pds::multipds_ptr mpds,
 
 void PDS2Prolog::write_constraint(pres::epresburger_ptr constraint,
                                   ostream& output) {
-    class ExpWriter : public pres::EPresVisitor, 
+    class ExpWriter : public pres::EPresVisitor,
                       public pres::EPresValVisitor {
         ostream& output;
 
@@ -343,7 +343,7 @@ void PDS2Prolog::write_constraint(pres::epresburger_ptr constraint,
             }
 
             virtual void visit(pres::EPresCompare& obj) {
-                if (obj.get_op() == NEQ) {
+                if (obj.get_op() == pres::CompOp::NEQ) {
                     output << "or(lt([";
                     obj.get_lhs()->accept(*this);
                     output << "],[";
@@ -379,7 +379,7 @@ void PDS2Prolog::write_constraint(pres::epresburger_ptr constraint,
 
             virtual void visit(pres::EPresAnd& obj) {
                 output << "and([";
-                tools::write_list(obj.get_operands(), 
+                tools::write_list(obj.get_operands(),
                                   output,
                                   [&, this] (pres::epresburger_ptr p) {
                     p->accept(*this);
@@ -389,7 +389,7 @@ void PDS2Prolog::write_constraint(pres::epresburger_ptr constraint,
 
             virtual void visit(pres::EPresOr& obj) {
                 output << "or([";
-                tools::write_list(obj.get_operands(), 
+                tools::write_list(obj.get_operands(),
                                   output,
                                   [&, this] (pres::epresburger_ptr p) {
                     p->accept(*this);
@@ -425,7 +425,7 @@ void PDS2Prolog::write_constraint(pres::epresburger_ptr constraint,
             }
 
             virtual void visit(pres::EPresPlus& obj) {
-                tools::write_list(obj.get_operands(), 
+                tools::write_list(obj.get_operands(),
                                   output,
                                   [&, this] (pres::epres_val_ptr p) {
                     p->accept(*this);
@@ -433,7 +433,7 @@ void PDS2Prolog::write_constraint(pres::epresburger_ptr constraint,
             }
 
             virtual void visit(pres::EPresConstMult& obj) {
-                output << obj.get_scalar() 
+                output << obj.get_scalar()
                        << "*";
                 obj.get_scalee()->accept(*this);
             }
@@ -523,7 +523,7 @@ void PDS2Prolog::write_call(pds::multipds_ptr mpds, std::ostream& output) {
 }
 
 
-void PDS2Prolog::get_counters(set<pair<string,int>>& counters, 
+void PDS2Prolog::get_counters(set<pair<string,int>>& counters,
                               multipds_ptr mpds) {
     for (pds_ptr p : mpds->get_pdss()) {
         for (string const& a : p->get_counters()) {
@@ -532,7 +532,7 @@ void PDS2Prolog::get_counters(set<pair<string,int>>& counters,
     }
 }
 
-void PDS2Prolog::get_freevariables(set<string>& counters, 
+void PDS2Prolog::get_freevariables(set<string>& counters,
                                    multipds_ptr mpds) {
     for (pds_ptr p : mpds->get_pdss()) {
         for (string const& a : p->get_freevariables()) {

@@ -3,10 +3,10 @@
 
 #include "counterexpression.h"
 
-using namespace cexp;
+using namespace ctrexp;
 using namespace std;
 
-void CExpCompare::to_stream(std::ostream& output) const { 
+void CExpCompare::to_stream(std::ostream& output) const {
     output << variable_name << " ";
     switch (op) {
         case EQ:  output << "="; break;
@@ -39,27 +39,27 @@ CompOp CExpCompare::normal_form_op(bool negative) {
 
 counterexp_ptr CExpConstCompare::normal_form(bool negative) {
     CompOp new_op = normal_form_op(negative);
-    return boost::make_shared<CExpConstCompare>(get_variable_name(), 
-                                                new_op, 
+    return boost::make_shared<CExpConstCompare>(get_variable_name(),
+                                                new_op,
                                                 value);
 }
 
-void CExpConstCompare::to_stream(std::ostream& output) const { 
+void CExpConstCompare::to_stream(std::ostream& output) const {
     output << "(";
-    CExpCompare::to_stream(output); 
+    CExpCompare::to_stream(output);
     output << value << ")";
 }
 
 counterexp_ptr CExpFVCompare::normal_form(bool negative) {
     CompOp new_op = normal_form_op(negative);
-    return boost::make_shared<CExpFVCompare>(get_variable_name(), 
-                                             new_op, 
+    return boost::make_shared<CExpFVCompare>(get_variable_name(),
+                                             new_op,
                                              freevariable_name);
 }
 
-void CExpFVCompare::to_stream(std::ostream& output) const { 
+void CExpFVCompare::to_stream(std::ostream& output) const {
     output << "(";
-    CExpCompare::to_stream(output); 
+    CExpCompare::to_stream(output);
     output << freevariable_name << ")";
 }
 
